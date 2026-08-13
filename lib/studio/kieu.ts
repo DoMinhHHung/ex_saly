@@ -7,7 +7,6 @@ export const BE_MAT_HOP_LE: readonly BeMat[] = [
   'zalo',
 ];
 
-/** Hop dong du lieu cua mot y tuong do Studio de xuat. */
 export type YTuongDeXuat = {
   tieuDe: string;
   truCot: string | null;
@@ -19,6 +18,12 @@ export type YTuongDeXuat = {
   khamPha: boolean;
 };
 
+export type NguonThamKhao = {
+  viTri: number;
+  trendSignalId: string;
+  lienKet: string | null;
+};
+
 export type KetQuaStudio<T> =
-  | { ok: true; duLieu: T; canhBao: string[] }
+  | { ok: true; duLieu: T; canhBao: string[]; nguonThamKhao?: NguonThamKhao[] }
   | { ok: false; loi: string; canhBao: string[] };

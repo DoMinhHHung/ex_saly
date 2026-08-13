@@ -2,10 +2,11 @@
 
 import { workspaceHienTai } from '@/lib/auth/current-workspace';
 import { deXuatYTuong } from '@/lib/studio/de-xuat';
-import { BE_MAT_HOP_LE, type BeMat, type YTuongDeXuat } from '@/lib/studio/kieu';
+import { BE_MAT_HOP_LE, type BeMat, type NguonThamKhao, type YTuongDeXuat } from '@/lib/studio/kieu';
 
 export type TrangThaiDeXuat = {
   yTuong: YTuongDeXuat[];
+  nguonThamKhao: NguonThamKhao[];
   loi: string | null;
   canhBao: string[];
 };
@@ -27,11 +28,19 @@ export async function deXuatAction(
       beMat,
       soLuong,
     });
-    if (!ketQua.ok) return { yTuong: [], loi: ketQua.loi, canhBao: ketQua.canhBao };
-    return { yTuong: ketQua.duLieu, loi: null, canhBao: ketQua.canhBao };
+    if (!ketQua.ok) {
+      return { yTuong: [], nguonThamKhao: [], loi: ketQua.loi, canhBao: ketQua.canhBao };
+    }
+    return {
+      yTuong: ketQua.duLieu,
+      nguonThamKhao: ketQua.nguonThamKhao ?? [],
+      loi: null,
+      canhBao: ketQua.canhBao,
+    };
   } catch {
     return {
       yTuong: [],
+      nguonThamKhao: [],
       loi: 'Khong the de xuat luc nay. Kiem tra worker va cau hinh mo hinh.',
       canhBao: [],
     };
