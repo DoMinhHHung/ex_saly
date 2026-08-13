@@ -2,7 +2,11 @@
 require('tsx/cjs');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { donKetQuaDeXuat, raiTheoTruCot } = require('../lib/studio/de-xuat-thuan.ts');
+const {
+  canBangKhamPha,
+  donKetQuaDeXuat,
+  raiTheoTruCot,
+} = require('../lib/studio/de-xuat-thuan.ts');
 
 test('donKetQuaDeXuat validates profile names', () => {
   const out = donKetQuaDeXuat({ yTuong: [
@@ -24,4 +28,37 @@ test('raiTheoTruCot respects target ratios', () => {
   assert.equal(out.filter((y) => y.truCot === 'A').length, 7);
   assert.equal(out.filter((y) => y.truCot === 'B').length, 3);
   assert.equal(new Set(out).size, 10);
+});
+
+test('exploration cap preserves one shared pillar quota', () => {
+  const tao = (truCot, i, khamPha) => ({
+    tieuDe: `${truCot}-${khamPha ? 'x' : 'r'}-${i}`,
+    truCot,
+    chanDung: 'Chi Ha',
+    gocTiepCan: null,
+    cauMoDau: null,
+    lyDoDeXuat: null,
+    beMat: 'fanpage',
+    khamPha,
+  });
+  const input = ['A', 'B', 'C'].flatMap((pillar) => [
+    ...Array.from({ length: 5 }, (_, i) => tao(pillar, i, true)),
+    ...Array.from({ length: 5 }, (_, i) => tao(pillar, i, false)),
+  ]);
+  const out = canBangKhamPha(
+    input,
+    [
+      { ten: 'A', tiLeMucTieu: 34 },
+      { ten: 'B', tiLeMucTieu: 33 },
+      { ten: 'C', tiLeMucTieu: 33 },
+    ],
+    10,
+    0.2,
+  );
+  assert.equal(out.length, 10);
+  assert.deepEqual(
+    ['A', 'B', 'C'].map((p) => out.filter((y) => y.truCot === p).length),
+    [4, 3, 3],
+  );
+  assert.equal(out.filter((y) => y.khamPha).length, 2);
 });

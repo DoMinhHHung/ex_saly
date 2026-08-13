@@ -3,7 +3,7 @@ import { NGUONG_CHAN_DE_XUAT } from '@/lib/brand/do-day-du';
 import { createRepo, trongGiaoDich } from '@/lib/data-access';
 import { chayNhiemVu } from '@/lib/model-runner';
 import { bocCongThucChoBaiMoi, daBocXong, type CongThuc } from './boc-cong-thuc';
-import { donKetQuaDeXuat, raiTheoTruCot, type TruCotMucTieu } from './de-xuat-thuan';
+import { canBangKhamPha, donKetQuaDeXuat, type TruCotMucTieu } from './de-xuat-thuan';
 import type { BeMat, KetQuaStudio, YTuongDeXuat } from './kieu';
 
 export { donKetQuaDeXuat, raiTheoTruCot } from './de-xuat-thuan';
@@ -17,15 +17,10 @@ function tachThamKhao(lyDo: string | null, hopLe: Set<string>) {
   if (!lyDo) return { trendSignalId: null, lyDo: null };
   const khop = lyDo.match(MA_THAM_KHAO);
   if (!khop) return { trendSignalId: null, lyDo };
-  return { trendSignalId: hopLe.has(khop[1]) ? khop[1] : null, lyDo: lyDo.replace(MA_THAM_KHAO, '').trim() || null };
-}
-
-function canKhamPha(yTuong: YTuongDeXuat[], truCot: TruCotMucTieu[], soLuong: number) {
-  const soKhamPha = Math.min(Math.round(soLuong * TI_LE_KHAM_PHA), yTuong.filter((y) => y.khamPha).length);
-  const thuong = raiTheoTruCot(yTuong.filter((y) => !y.khamPha), truCot, soLuong - soKhamPha);
-  const khamPha = raiTheoTruCot(yTuong.filter((y) => y.khamPha), truCot, soKhamPha);
-  const daChon = new Set([...thuong, ...khamPha]);
-  return [...thuong, ...khamPha, ...yTuong.filter((y) => !daChon.has(y))].slice(0, soLuong);
+  return {
+    trendSignalId: hopLe.has(khop[1]) ? khop[1] : null,
+    lyDo: lyDo.replace(MA_THAM_KHAO, '').trim() || null,
+  };
 }
 
 export async function deXuatYTuong(thamSo: ThamSoDeXuat): Promise<KetQuaStudio<YTuongDeXuat[]>> {
@@ -35,12 +30,20 @@ export async function deXuatYTuong(thamSo: ThamSoDeXuat): Promise<KetQuaStudio<Y
     repo.hoSo.lay(), repo.truCot.list(), repo.chanDung.list(), repo.insight.list(30), repo.sanPham.list(20),
     repo.contents.list({ beMat: thamSo.beMat, trangThai: 'da_dang', gioiHan: 30 }),
   ]);
-  if (!hoSo || hoSo.doDayDu < NGUONG_CHAN_DE_XUAT) return { ok: false, loi: `Ho so can dat ${NGUONG_CHAN_DE_XUAT}% truoc khi de xuat.`, canhBao: [] };
-  if (truCot.length === 0 || chanDung.length === 0) return { ok: false, loi: 'Can it nhat mot tru cot va mot chan dung khach hang.', canhBao: [] };
+  if (!hoSo || hoSo.doDayDu < NGUONG_CHAN_DE_XUAT) {
+    return { ok: false, loi: `Ho so can dat ${NGUONG_CHAN_DE_XUAT}% truoc khi de xuat.`, canhBao: [] };
+  }
+  if (truCot.length === 0 || chanDung.length === 0) {
+    return { ok: false, loi: 'Can it nhat mot tru cot va mot chan dung khach hang.', canhBao: [] };
+  }
 
   const canhBao: string[] = [];
-  try { const boc = await bocCongThucChoBaiMoi(thamSo.workspaceId, 20); canhBao.push(...boc.canhBao); }
-  catch { canhBao.push('Chua boc duoc cong thuc cua mot so bai tham khao; van de xuat tu du lieu con lai.'); }
+  try {
+    const boc = await bocCongThucChoBaiMoi(thamSo.workspaceId, 20);
+    canhBao.push(...boc.canhBao);
+  } catch {
+    canhBao.push('Chua boc duoc cong thuc cua mot so bai tham khao; van de xuat tu du lieu con lai.');
+  }
 
   const nguoi = await nguoiDungHienTai();
   const tinHieu = await repo.tinHieuXuHuong.theoNguoiDung(nguoi, 20);
@@ -51,7 +54,10 @@ export async function deXuatYTuong(thamSo: ThamSoDeXuat): Promise<KetQuaStudio<Y
   });
 
   const ketQua = await chayNhiemVu({
-    nhiemVu: 'de-xuat-y-tuong', khongGianLamViec: thamSo.workspaceId,
+    nhiemVu: 'de-xuat-y-tuong',
+    khongGianLamViec: thamSo.workspaceId,
+    // Day la hanh dong tuong tac: hai lan bam co cung context van phai sinh goi y moi.
+    khoaChongTrung: null,
     duLieuVao: {
       soLuong: Math.max(soLuong * 2, soLuong + 6), beMat: thamSo.beMat, tiLeKhamPha: TI_LE_KHAM_PHA,
       hoSo: { moTa: hoSo.moTa, giongDieu: hoSo.giongDieu, dieuCamKy: hoSo.dieuCamKy },
@@ -63,13 +69,19 @@ export async function deXuatYTuong(thamSo: ThamSoDeXuat): Promise<KetQuaStudio<Y
       thamKhaoXuHuong: thamKhao,
     },
   });
-  if (ketQua.trangThai !== 'xong' || !ketQua.ketQua) return { ok: false, loi: ketQua.loi ?? 'Mo hinh khong tra ve ket qua.', canhBao };
+  if (ketQua.trangThai !== 'xong' || !ketQua.ketQua) {
+    return { ok: false, loi: ketQua.loi ?? 'Mo hinh khong tra ve ket qua.', canhBao };
+  }
 
   const tenTruCot = truCot.map((t) => t.ten);
   const tenChanDung = chanDung.map((c) => c.ten);
-  const daDon = donKetQuaDeXuat(ketQua.ketQua, tenTruCot, tenChanDung, thamSo.beMat).filter((y) => y.truCot !== null && y.chanDung !== null);
-  const mucTieu: TruCotMucTieu[] = truCot.map((t) => ({ ten: t.ten, tiLeMucTieu: t.tiLeMucTieu === null ? null : Number(t.tiLeMucTieu) }));
-  const daChon = canKhamPha(daDon, mucTieu, soLuong);
+  const daDon = donKetQuaDeXuat(ketQua.ketQua, tenTruCot, tenChanDung, thamSo.beMat)
+    .filter((y) => y.truCot !== null && y.chanDung !== null);
+  const mucTieu: TruCotMucTieu[] = truCot.map((t) => ({
+    ten: t.ten,
+    tiLeMucTieu: t.tiLeMucTieu === null ? null : Number(t.tiLeMucTieu),
+  }));
+  const daChon = canBangKhamPha(daDon, mucTieu, soLuong, TI_LE_KHAM_PHA);
   if (daChon.length < soLuong) canhBao.push(`Chi co ${daChon.length}/${soLuong} y tuong qua duoc kiem tra ho so.`);
 
   const idThamKhao = new Set(thamKhao.map((t) => t.maThamKhao));
@@ -85,7 +97,18 @@ export async function deXuatYTuong(thamSo: ThamSoDeXuat): Promise<KetQuaStudio<Y
     for (const { y, trendSignalId, lyDo } of sach) {
       const tc = truCot.find((t) => t.ten === y.truCot);
       const cd = chanDung.find((c) => c.ten === y.chanDung);
-      await tx.yTuong.tao({ beMat: y.beMat, pillarId: tc?.id ?? null, personaId: cd?.id ?? null, gocTiepCan: y.gocTiepCan, cauMoDau: y.cauMoDau, lyDoDeXuat: lyDo, nguonYTuong: trendSignalId ? 'xu-huong' : 'may-de-xuat', trendSignalId });
+      await tx.yTuong.tao({
+        tieuDe: y.tieuDe,
+        khamPha: y.khamPha,
+        beMat: y.beMat,
+        pillarId: tc?.id ?? null,
+        personaId: cd?.id ?? null,
+        gocTiepCan: y.gocTiepCan,
+        cauMoDau: y.cauMoDau,
+        lyDoDeXuat: lyDo,
+        nguonYTuong: trendSignalId ? 'xu-huong' : 'may-de-xuat',
+        trendSignalId,
+      });
       if (trendSignalId) idDaDung.push(trendSignalId);
     }
     await tx.tinHieuXuHuong.danhDauDaDung([...new Set(idDaDung)]);

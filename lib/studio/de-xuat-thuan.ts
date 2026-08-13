@@ -86,3 +86,55 @@ export function raiTheoTruCot(
   }
   return ketQua;
 }
+
+/**
+ * Can ti le kham pha bang cach doi cho TRONG CUNG tru cot. Nhu vay quota tru
+ * cot chi duoc tinh mot lan, khong bi sai so lam tron khi tach hai nhom.
+ */
+export function canBangKhamPha(
+  yTuong: YTuongDeXuat[],
+  truCot: TruCotMucTieu[],
+  soLuong: number,
+  tiLeKhamPha: number,
+): YTuongDeXuat[] {
+  const ketQua = raiTheoTruCot(yTuong, truCot, soLuong);
+  const mucTieu = Math.min(
+    Math.round(soLuong * tiLeKhamPha),
+    yTuong.filter((y) => y.khamPha).length,
+  );
+  const daChon = new Set(ketQua);
+  let hienTai = ketQua.filter((y) => y.khamPha).length;
+
+  if (hienTai > mucTieu) {
+    for (let i = ketQua.length - 1; i >= 0 && hienTai > mucTieu; i -= 1) {
+      const dangCo = ketQua[i];
+      if (!dangCo.khamPha) continue;
+      const thay = yTuong.find((y) =>
+        !daChon.has(y) && !y.khamPha && y.truCot === dangCo.truCot,
+      );
+      daChon.delete(dangCo);
+      if (thay) {
+        ketQua[i] = thay;
+        daChon.add(thay);
+      } else {
+        ketQua.splice(i, 1);
+      }
+      hienTai -= 1;
+    }
+  } else if (hienTai < mucTieu) {
+    for (let i = 0; i < ketQua.length && hienTai < mucTieu; i += 1) {
+      const dangCo = ketQua[i];
+      if (dangCo.khamPha) continue;
+      const thay = yTuong.find((y) =>
+        !daChon.has(y) && y.khamPha && y.truCot === dangCo.truCot,
+      );
+      if (!thay) continue;
+      daChon.delete(dangCo);
+      daChon.add(thay);
+      ketQua[i] = thay;
+      hienTai += 1;
+    }
+  }
+
+  return ketQua.slice(0, soLuong);
+}
