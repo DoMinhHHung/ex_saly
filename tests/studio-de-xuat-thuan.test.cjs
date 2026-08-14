@@ -8,15 +8,17 @@ const {
   raiTheoTruCot,
 } = require('../lib/studio/de-xuat-thuan.ts');
 
-test('donKetQuaDeXuat validates profile names', () => {
+test('donKetQuaDeXuat validates profile names and keeps the requested surface', () => {
   const out = donKetQuaDeXuat({ yTuong: [
-    { tieuDe: 'A', truCot: 'XAY LONG TIN', chanDung: 'Chi Ha', beMat: 'fanpage' },
-    { tieuDe: 'B', truCot: 'invented', chanDung: 'invented', beMat: 'fanpage', kham_pha: true },
+    { tieuDe: 'A', truCot: 'XAY LONG TIN', chanDung: 'Chi Ha', beMat: 'tiktok' },
+    { tieuDe: 'B', truCot: 'invented', chanDung: 'invented', beMat: 'zalo', kham_pha: true },
   ] }, ['Xay long tin'], ['Chi Ha'], 'fanpage');
   assert.equal(out[0].truCot, 'Xay long tin');
   assert.equal(out[0].chanDung, 'Chi Ha');
+  assert.equal(out[0].beMat, 'fanpage');
   assert.equal(out[1].truCot, null);
   assert.equal(out[1].chanDung, null);
+  assert.equal(out[1].beMat, 'fanpage');
   assert.equal(out[1].khamPha, true);
 });
 

@@ -1,4 +1,4 @@
-import { BE_MAT_HOP_LE, type BeMat, type YTuongDeXuat } from './kieu';
+import type { BeMat, YTuongDeXuat } from './kieu';
 
 export type TruCotMucTieu = { ten: string; tiLeMucTieu: number | null };
 
@@ -29,8 +29,6 @@ export function donKetQuaDeXuat(
     const m = muc as MucTho;
     const tieuDe = chuoi(m.tieuDe);
     if (!tieuDe) return [];
-    const beMatTho = chuoi(m.beMat);
-    const beMat = BE_MAT_HOP_LE.includes(beMatTho as BeMat) ? (beMatTho as BeMat) : beMatMacDinh;
     return [{
       tieuDe,
       truCot: tenThat(m.truCot, truCotHopLe),
@@ -38,7 +36,8 @@ export function donKetQuaDeXuat(
       gocTiepCan: chuoi(m.gocTiepCan),
       cauMoDau: chuoi(m.cauMoDau),
       lyDoDeXuat: chuoi(m.lyDoDeXuat),
-      beMat,
+      // Be mat la tham so server da chot. Khong cho output model doi dich den.
+      beMat: beMatMacDinh,
       khamPha: m.kham_pha === true || m.khamPha === true,
     }];
   });
