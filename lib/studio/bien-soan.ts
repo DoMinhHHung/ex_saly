@@ -1,5 +1,6 @@
 import { createRepo, trongGiaoDich } from '@/lib/data-access';
 import { chayNhiemVu } from '@/lib/model-runner';
+import { kiemTraDoDai, layKhoangTu } from './cong-dem-tu';
 import type { BeMat, KetQuaStudio } from './kieu';
 
 export type BaiVietHoanChinh = {
@@ -44,9 +45,10 @@ export function donKetQuaVietBai(tho: unknown): BaiVietTho | null {
   return { tieuDe, noiDung, hashtag: [...new Set(hashtag)].slice(0, 5) };
 }
 
-function ghepBai(noiDung: string, hashtag: string[]): string {
-  if (hashtag.length === 0) return noiDung;
-  return `${noiDung}\n\n${hashtag.join(' ')}`;
+function ghepBai(tieuDe: string, noiDung: string, hashtag: string[]): string {
+  const bai = `${tieuDe}\n\n${noiDung}`;
+  if (hashtag.length === 0) return bai;
+  return `${bai}\n\n${hashtag.join(' ')}`;
 }
 
 /** Mot y tuong da luu -> mot ban nhap co the sua, tat ca doc/ghi qua data-access. */
@@ -67,6 +69,7 @@ export async function bienSoanBai(
   ]);
   const pillar = truCot.find((t) => t.id === idea.pillarId) ?? null;
   const persona = chanDung.find((c) => c.id === idea.personaId) ?? null;
+  const khoangTu = layKhoangTu(idea.beMat);
 
   const chay = await chayNhiemVu({
     nhiemVu: 'viet-bai',
@@ -74,6 +77,7 @@ export async function bienSoanBai(
     khoaChongTrung: null,
     duLieuVao: {
       bienThe: idea.beMat,
+      epDoDai: khoangTu,
       yTuong: {
         tieuDe: idea.tieuDe,
         gocTiepCan: idea.gocTiepCan,
@@ -104,8 +108,20 @@ export async function bienSoanBai(
 
   const bai = donKetQuaVietBai(chay.ketQua);
   if (!bai) return { ok: false, loi: 'Ket qua bai viet khong dung dinh dang.', canhBao: [] };
+
+  const doDai = kiemTraDoDai(bai.noiDung, idea.beMat);
+  if (!doDai.hopLe) {
+    return {
+      ok: false,
+      loi: `Bai viet co ${doDai.soTu} tu; ${idea.beMat} bat buoc ${doDai.toiThieu}-${doDai.toiDa} tu. Hay sinh lai.`,
+      canhBao: ['Ket qua vuot rang buoc do dai nen khong duoc luu.'],
+    };
+  }
+
   const hashtag = idea.beMat === 'zalo' ? [] : bai.hashtag;
-  const noiDungLuu = ghepBai(bai.noiDung, hashtag);
+  // Facebook khong co cot title rieng. Dua headline vao chinh draft giup no
+  // song qua redirect/reload va van sua duoc, thay vi them schema chi de giu UI state.
+  const noiDungLuu = ghepBai(bai.tieuDe, bai.noiDung, hashtag);
 
   const contentId = await trongGiaoDich(thamSo.workspaceId, async (tx) => {
     const content = await tx.contents.tao({
