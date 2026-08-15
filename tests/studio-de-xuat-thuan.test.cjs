@@ -18,11 +18,13 @@ test('donKetQuaDeXuat validates profile names and keeps the requested surface', 
   assert.equal(out[0].beMat, 'fanpage');
   assert.equal(out[1].truCot, null);
   assert.equal(out[1].chanDung, null);
+  assert.equal(out[1].truCotHienThi, null);
+  assert.equal(out[1].chanDungHienThi, null);
   assert.equal(out[1].beMat, 'fanpage');
   assert.equal(out[1].khamPha, true);
 });
 
-test('donKetQuaDeXuat accepts Vietnamese diacritics but returns canonical DB names', () => {
+test('donKetQuaDeXuat accepts Vietnamese diacritics, persists canonical names and keeps display labels', () => {
   const out = donKetQuaDeXuat({ yTuong: [
     {
       tieuDe: 'A',
@@ -40,8 +42,12 @@ test('donKetQuaDeXuat accepts Vietnamese diacritics but returns canonical DB nam
 
   assert.equal(out[0].truCot, 'Xay long tin');
   assert.equal(out[0].chanDung, 'Chi Ha ban do an nha lam');
+  assert.equal(out[0].truCotHienThi, 'Xây lòng tin');
+  assert.equal(out[0].chanDungHienThi, 'Chị Hà bán đồ ăn nhà làm');
   assert.equal(out[1].truCot, null);
   assert.equal(out[1].chanDung, null);
+  assert.equal(out[1].truCotHienThi, null);
+  assert.equal(out[1].chanDungHienThi, null);
 });
 
 test('raiTheoTruCot respects target ratios', () => {
