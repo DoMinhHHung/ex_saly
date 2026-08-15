@@ -29,6 +29,8 @@
 
 .kich-ban-chon select { width: 100%; }
 .kich-ban-chon .btn { width: 100%; justify-content: center; }
+.kich-ban-nut-sinh { transition: opacity 0.18s ease; }
+.kich-ban-nut-sinh:disabled { opacity: 0.5; cursor: progress; box-shadow: none; }
 
 .kich-ban-tom-tat {
   display: flex;
