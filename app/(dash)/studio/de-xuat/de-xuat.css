@@ -23,7 +23,12 @@
 
 .de-xuat-toolbar { display: flex; align-items: flex-end; gap: 10px; margin: 0; }
 .de-xuat-toolbar__field { min-width: 190px; }
-.de-xuat-toolbar__nut { min-height: 42px; white-space: nowrap; }
+.de-xuat-toolbar__nut { min-height: 42px; white-space: nowrap; transition: opacity 0.18s ease; }
+.de-xuat-toolbar__nut:disabled {
+  opacity: 0.5;
+  cursor: progress;
+  box-shadow: none;
+}
 
 .de-xuat-ket-qua {
   display: flex; flex-direction: column; gap: 14px; margin-top: 20px;
