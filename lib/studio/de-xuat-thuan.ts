@@ -1,4 +1,4 @@
-import type { BeMat, YTuongDeXuat } from './kieu';
+import type { BeMat, GoiYHinhAnh, YTuongDeXuat } from './kieu';
 
 export type TruCotMucTieu = { ten: string; tiLeMucTieu: number | null };
 
@@ -31,6 +31,28 @@ function tenThat(tho: unknown, danhSach: string[]): string | null {
   return danhSach.find((muc) => khoaTen(muc) === khoa) ?? null;
 }
 
+/**
+ * Chi giu nhan model tra ve neu no van la DUNG entity canonical sau khi bo dau.
+ * Nhan nay chi phuc vu UI; persistence van dung `tenThat()` o tren.
+ */
+function tenHienThi(tho: unknown, canonical: string | null): string | null {
+  const ten = chuoi(tho);
+  if (!ten || !canonical) return null;
+  return khoaTen(ten) === khoaTen(canonical) ? ten : canonical;
+}
+
+function goiYHinhAnh(tho: unknown): GoiYHinhAnh | null {
+  if (!tho || typeof tho !== 'object' || Array.isArray(tho)) return null;
+  const h = tho as MucTho;
+  const ketQua: GoiYHinhAnh = {
+    moTa: chuoi(h.moTa),
+    boCuc: chuoi(h.boCuc),
+    phongCach: chuoi(h.phongCach),
+    prompt: chuoi(h.prompt),
+  };
+  return Object.values(ketQua).some((v) => v !== null) ? ketQua : null;
+}
+
 export function donKetQuaDeXuat(
   tho: unknown,
   truCotHopLe: string[] = [],
@@ -45,13 +67,19 @@ export function donKetQuaDeXuat(
     const m = muc as MucTho;
     const tieuDe = chuoi(m.tieuDe);
     if (!tieuDe) return [];
+    const truCot = tenThat(m.truCot, truCotHopLe);
+    const chanDung = tenThat(m.chanDung, chanDungHopLe);
     return [{
       tieuDe,
-      truCot: tenThat(m.truCot, truCotHopLe),
-      chanDung: tenThat(m.chanDung, chanDungHopLe),
+      truCot,
+      chanDung,
+      truCotHienThi: tenHienThi(m.truCot, truCot),
+      chanDungHienThi: tenHienThi(m.chanDung, chanDung),
       gocTiepCan: chuoi(m.gocTiepCan),
       cauMoDau: chuoi(m.cauMoDau),
       lyDoDeXuat: chuoi(m.lyDoDeXuat),
+      briefChiTiet: chuoi(m.briefChiTiet),
+      hinhAnh: goiYHinhAnh(m.hinhAnh),
       // Be mat la tham so server da chot. Khong cho output model doi dich den.
       beMat: beMatMacDinh,
       khamPha: m.kham_pha === true || m.khamPha === true,

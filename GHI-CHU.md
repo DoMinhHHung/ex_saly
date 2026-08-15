@@ -2,18 +2,21 @@
 
 ## Phạm vi đã hoàn thành
 
-Tôi chủ động dừng ở **mốc 2** để ưu tiên độ chắc chắn của luồng core thay vì chạm nhiều mốc nhưng không hoàn thiện.
+Tôi hoàn thiện luồng core đến **mốc 2** và chỉ mở rộng thêm một lát cắt nhỏ của **mốc 5** theo kiểu on-demand. Tôi không coi mốc 5 là hoàn thành: ảnh hiện phục vụ preview cho một brief được chọn, chưa có batch generation hay lifecycle asset đầy đủ.
 
 ### Mốc 1 — Đề xuất ý tưởng
 
 - Hoàn thiện `/studio/de-xuat` với mặc định 10 ý tưởng mỗi lượt.
 - Ý tưởng chỉ được neo vào `content_pillars` và `personas` có thật trong workspace; tên mô hình bịa ra bị hạ về `null` và loại trước khi lưu.
+- Tên canonical trong seed có thể không dấu; UI được phép giữ nhãn tiếng Việt có dấu khi sau normalization vẫn khớp đúng entity canonical. Không dùng fuzzy/semantic matching.
 - Phân bổ theo `ti_le_muc_tieu` bằng largest remainder; phần khám phá được cap ở 20% mà không phá quota trụ cột.
 - `beMat` của kết quả luôn lấy từ request phía server, không tin model tự đổi bề mặt.
 - Đọc insight, sản phẩm, lịch sử bài đã đăng của kênh mình và dữ liệu kênh đang follow.
 - Với kênh follow, bài gốc chỉ được dùng ở bước bóc công thức. Prompt đề xuất chỉ nhận topic/công thức kể chuyện, không nhận nguyên văn bài người khác.
 - Nếu một ý tưởng thực sự dùng nguồn tham khảo, lưu đúng `trendSignalId` và hiển thị link nguồn tương ứng.
-- Ý tưởng sinh ra được persist để dùng tiếp ở bước biên soạn.
+- Mỗi ý tưởng có summary để scan nhanh và `briefChiTiet` khoảng 900–1100 ký tự để writer có thể triển khai tiếp mà chưa biến thành full post.
+- Mỗi brief có art direction có cấu trúc (`moTa`, `boCuc`, `phongCach`, `prompt`) và vẫn tuân thủ fact-safety, không tự bịa số liệu/case study/logo.
+- Ý tưởng sinh ra được persist để dùng tiếp ở bước biên soạn. Các field brief/art-direction hiện là enrichment của response Mốc 1, chưa mở rộng schema persistence chỉ để phục vụ preview.
 
 ### Mốc 2 — Biên soạn bài đăng
 
@@ -25,6 +28,14 @@ Tôi chủ động dừng ở **mốc 2** để ưu tiên độ chắc chắn c�
 - Headline do model sinh được đặt trong chính draft editable, nên không mất sau redirect/reload và không cần thêm schema chỉ để giữ UI state.
 - User có thể chỉnh nội dung trong textarea rồi lưu lại; server chỉ cho sửa content thuộc workspace hiện tại, trạng thái `ban_nhap`, dạng bài chữ.
 - Generation tương tác dùng `khoaChongTrung: null` để mỗi lần user chủ động bấm có thể tạo một candidate mới thay vì bị reuse job cũ theo hash.
+
+### Mốc 5 — lát cắt sinh ảnh on-demand
+
+- Mỗi brief có nút `Tạo ảnh minh hoạ`; không sinh 10 ảnh cùng lúc để tránh biến latency/quota ảnh thành dependency của Mốc 1.
+- Server dùng `GEMINI_API_KEY` và image model riêng, độc lập với `AI_MODEL` text.
+- Ảnh trả về được lưu trong kho media theo prefix workspace và chỉ đọc lại qua route `/api/media/...` đã kiểm session/workspace/path traversal.
+- Prompt ảnh được bọc thêm guard: không chèn logo, phần trăm, số liệu hay bằng chứng kinh doanh không có thật.
+- Nếu image API lỗi/quota hết, 10 idea và brief vẫn còn nguyên; lỗi ảnh chỉ nằm ở card được bấm.
 
 ## Quyết định kỹ thuật đáng chú ý
 
@@ -42,7 +53,7 @@ Nhờ vậy model học cách kể/chủ đề nhưng không có raw text để 
 
 ### 3. Workspace isolation nằm ở data-access
 
-Studio chỉ đọc/ghi thông qua `createRepo(workspaceId)` / `trongGiaoDich(workspaceId)`. Không có query DB trực tiếp từ page/server action.
+Studio chỉ đọc/ghi business data thông qua `createRepo(workspaceId)` / `trongGiaoDich(workspaceId)`. Ảnh sinh on-demand dùng kho media workspace-scoped và route đọc media tự kiểm workspace của session.
 
 ### 4. Persistence của title và exploration flag
 
@@ -50,13 +61,17 @@ Schema gốc ghi rõ phần core đã frozen, trong khi mốc 1 cần lưu đủ
 
 ### 5. Không tin prompt cho invariant đo được bằng code
 
-Độ dài là invariant deterministic nên được kiểm sau khi model trả về. Nếu output ngoài khoảng của bề mặt, hệ thống fail explicit và không lưu bản nháp sai. Tôi chưa thêm auto-repair/retry vì trong phạm vi hai ngày, fail rõ ràng dễ kiểm soát hơn một vòng retry làm tăng latency/cost và vẫn có thể sai lần nữa.
+Độ dài bài đăng là invariant deterministic nên được kiểm sau khi model trả về. Nếu output ngoài khoảng của bề mặt, hệ thống fail explicit và không lưu bản nháp sai. Với content brief ~1000 ký tự, tôi dùng target mềm trong prompt để không loại hàng loạt idea chỉ vì model lệch vài ký tự; đây là enrichment cho writer, không phải publishing contract.
+
+### 6. Sinh ảnh theo yêu cầu thay vì eager batch
+
+Một lượt idea có 10 brief. Nếu đồng thời gọi 10 image requests, Mốc 1 sẽ chậm, tốn quota và fail theo provider ảnh dù phần idea đã đúng. Vì vậy ảnh chỉ sinh khi user chọn một brief cần xem visual. Đây là trade-off cố ý để core flow vẫn độc lập với image provider.
 
 ## Phần chưa làm và lý do
 
 - **Mốc 3 — kịch bản quay:** chưa làm. Tôi ưu tiên mốc 1–2 chạy xuyên suốt trước, đúng tinh thần brief: dừng ở mốc 2 chắc chắn tốt hơn chạm cả 5 mốc nhưng không cái nào hoàn thiện.
 - **Mốc 4 — sinh hàng loạt 10 bài/ngày:** chưa làm. Đây là orchestration trên core mốc 1–2; chỉ nên thêm sau khi single-item flow đã được chạy thật ổn định.
-- **Mốc 5 — sinh ảnh:** chưa làm. Có thêm API/cost/storage/error handling riêng, không phải dependency để chứng minh core flow.
+- **Mốc 5 — sinh ảnh đầy đủ:** chưa hoàn thành. Đã có on-demand preview + storage workspace-scoped, nhưng chưa persist quan hệ ảnh ↔ idea/content, chưa có regenerate history, moderation/review workflow, batch image generation hay cleanup policy cho asset cũ.
 
 ## Kiểm trước khi nộp
 
@@ -67,5 +82,7 @@ npx tsc --noEmit
 node --test tests/
 npm run build
 ```
+
+Sau đó chạy một lượt Gemini thật: sinh 10 idea mới, mở `Xem brief đầy đủ`, kiểm brief xấp xỉ 1.000 ký tự và thử `Tạo ảnh minh hoạ` cho ít nhất một card.
 
 Không hard-code API key hoặc secret vào repository.
