@@ -24,13 +24,20 @@ test('donKetQuaDeXuat validates profile names and keeps the requested surface', 
   assert.equal(out[1].khamPha, true);
 });
 
-test('donKetQuaDeXuat accepts Vietnamese diacritics, persists canonical names and keeps display labels', () => {
+test('donKetQuaDeXuat accepts Vietnamese diacritics, persists canonical names and parses rich brief fields', () => {
   const out = donKetQuaDeXuat({ yTuong: [
     {
       tieuDe: 'A',
       truCot: 'Xây lòng tin',
       chanDung: 'Chị Hà bán đồ ăn nhà làm',
       beMat: 'fanpage',
+      briefChiTiet: 'Một brief chi tiết có nội dung thật để writer triển khai.',
+      hinhAnh: {
+        moTa: 'Ảnh chủ shop đang quay món ăn bằng điện thoại.',
+        boCuc: 'Cận cảnh món ăn ở tiền cảnh, điện thoại ở một phần ba khung hình.',
+        phongCach: 'Ánh sáng tự nhiên, đời thường, ấm áp.',
+        prompt: 'Ảnh lifestyle chân thực về chủ shop đồ ăn đang quay món ăn bằng điện thoại.',
+      },
     },
     {
       tieuDe: 'B',
@@ -44,6 +51,9 @@ test('donKetQuaDeXuat accepts Vietnamese diacritics, persists canonical names an
   assert.equal(out[0].chanDung, 'Chi Ha ban do an nha lam');
   assert.equal(out[0].truCotHienThi, 'Xây lòng tin');
   assert.equal(out[0].chanDungHienThi, 'Chị Hà bán đồ ăn nhà làm');
+  assert.match(out[0].briefChiTiet, /writer triển khai/);
+  assert.match(out[0].hinhAnh.prompt, /chủ shop đồ ăn/);
+  assert.match(out[0].hinhAnh.boCuc, /tiền cảnh/);
   assert.equal(out[1].truCot, null);
   assert.equal(out[1].chanDung, null);
   assert.equal(out[1].truCotHienThi, null);
@@ -51,7 +61,7 @@ test('donKetQuaDeXuat accepts Vietnamese diacritics, persists canonical names an
 });
 
 test('raiTheoTruCot respects target ratios', () => {
-  const tao = (truCot, i) => ({ tieuDe: `${truCot}-${i}`, truCot, chanDung: 'Chi Ha', gocTiepCan: null, cauMoDau: null, lyDoDeXuat: null, beMat: 'fanpage', khamPha: false });
+  const tao = (truCot, i) => ({ tieuDe: `${truCot}-${i}`, truCot, chanDung: 'Chi Ha', gocTiepCan: null, cauMoDau: null, lyDoDeXuat: null, briefChiTiet: null, hinhAnh: null, beMat: 'fanpage', khamPha: false });
   const input = [...Array.from({ length: 10 }, (_, i) => tao('A', i)), ...Array.from({ length: 10 }, (_, i) => tao('B', i))];
   const out = raiTheoTruCot(input, [{ ten: 'A', tiLeMucTieu: 70 }, { ten: 'B', tiLeMucTieu: 30 }], 10);
   assert.equal(out.length, 10);
@@ -68,6 +78,8 @@ test('exploration cap preserves one shared pillar quota', () => {
     gocTiepCan: null,
     cauMoDau: null,
     lyDoDeXuat: null,
+    briefChiTiet: null,
+    hinhAnh: null,
     beMat: 'fanpage',
     khamPha,
   });
