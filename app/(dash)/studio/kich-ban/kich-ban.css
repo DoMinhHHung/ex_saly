@@ -1,0 +1,171 @@
+.kich-ban-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.kich-ban-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgb(78 52 31 / 0.04);
+}
+
+.kich-ban-panel__dau {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.kich-ban-panel__dau h2 { margin: 3px 0 5px; font-size: 19px; }
+.kich-ban-panel__dau p { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+.kich-ban-panel__body { padding: 18px 20px 20px; }
+
+.kich-ban-chon {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kich-ban-chon select { width: 100%; }
+.kich-ban-chon .btn { width: 100%; justify-content: center; }
+
+.kich-ban-tom-tat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.kich-ban-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 11px;
+  background: var(--surface);
+}
+
+.kich-ban-soan {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kich-ban-tieu-de input {
+  width: 100%;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.kich-ban-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kich-ban-canh {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgb(250 247 243 / 0.5);
+}
+
+.kich-ban-canh__so {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.kich-ban-canh__badge {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--clay);
+  color: white;
+  font-weight: 700;
+}
+
+.kich-ban-canh__thoi-luong {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-2);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.kich-ban-canh__thoi-luong input {
+  width: 45px;
+  padding: 5px;
+  text-align: center;
+}
+
+.kich-ban-canh__noi-dung {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.kich-ban-canh label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kich-ban-canh label > span,
+.kich-ban-tieu-de > span {
+  color: var(--ink-2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.kich-ban-canh textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.kich-ban-canh textarea,
+.kich-ban-canh input,
+.kich-ban-tieu-de input {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.kich-ban-canh textarea,
+.kich-ban-tieu-de input { padding: 10px 11px; }
+
+.kich-ban-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 2px;
+}
+
+.kich-ban-empty {
+  padding: 28px 20px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+@media (max-width: 1050px) {
+  .kich-ban-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  .kich-ban-canh { grid-template-columns: 1fr; }
+  .kich-ban-canh__so { align-items: center; flex-direction: row; }
+  .kich-ban-canh__noi-dung { grid-template-columns: 1fr; }
+}
