@@ -3,9 +3,16 @@
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 
-import { deXuatAction, type TrangThaiDeXuat } from './actions';
+import {
+  deXuatAction,
+  taoAnhMinhHoaAction,
+  type TrangThaiAnh,
+  type TrangThaiDeXuat,
+} from './actions';
+import type { YTuongDeXuat } from '@/lib/studio/kieu';
 
 const BAN_DAU: TrangThaiDeXuat = { yTuong: [], nguonThamKhao: [], loi: null, canhBao: [] };
+const ANH_BAN_DAU: TrangThaiAnh = { url: null, moHinh: null, loi: null };
 
 const TEN_BE_MAT = {
   fanpage: 'Facebook fanpage',
@@ -20,6 +27,51 @@ function NutDeXuat() {
     <button className="btn btn--primary de-xuat-toolbar__nut" type="submit" disabled={pending}>
       {pending ? 'Đang suy nghĩ...' : 'Đề xuất 10 ý tưởng'}
     </button>
+  );
+}
+
+function NutTaoAnh({ daCoAnh }: { daCoAnh: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button className="btn de-xuat-anh__nut" type="submit" disabled={pending}>
+      {pending ? 'Đang tạo ảnh...' : daCoAnh ? 'Tạo ảnh khác' : 'Tạo ảnh minh hoạ'}
+    </button>
+  );
+}
+
+function AnhMinhHoa({ yTuong, so, mau }: { yTuong: YTuongDeXuat; so: string; mau: number }) {
+  const [trangThai, action] = useActionState(taoAnhMinhHoaAction, ANH_BAN_DAU);
+  const prompt = yTuong.hinhAnh?.prompt;
+
+  return (
+    <div className="de-xuat-anh">
+      <div className={`de-xuat-brief__visual de-xuat-brief__visual--${mau}`}>
+        {trangThai.url ? (
+          <img src={trangThai.url} alt={`Ảnh minh hoạ cho ${yTuong.tieuDe}`} />
+        ) : (
+          <>
+            <span>Ý tưởng {so}</span>
+            <strong>{TEN_BE_MAT[yTuong.beMat]}</strong>
+            <div className="de-xuat-brief__shape de-xuat-brief__shape--a" aria-hidden="true" />
+            <div className="de-xuat-brief__shape de-xuat-brief__shape--b" aria-hidden="true" />
+            <em>Chưa tạo ảnh</em>
+          </>
+        )}
+      </div>
+
+      <div className="de-xuat-anh__toolbar">
+        {prompt ? (
+          <form action={action}>
+            <input type="hidden" name="prompt" value={prompt} />
+            <NutTaoAnh daCoAnh={Boolean(trangThai.url)} />
+          </form>
+        ) : (
+          <span>Brief này chưa có prompt hình ảnh.</span>
+        )}
+        {trangThai.moHinh ? <small>{trangThai.moHinh}</small> : null}
+      </div>
+      {trangThai.loi ? <p className="de-xuat-anh__loi">{trangThai.loi}</p> : null}
+    </div>
   );
 }
 
@@ -63,7 +115,7 @@ export function FormDeXuat() {
             <div>
               <span className="de-xuat-nhan">Kết quả mới nhất</span>
               <h2>{trangThai.yTuong.length} content brief sẵn để chọn</h2>
-              <p>Mỗi brief có hook, góc triển khai, dữ liệu neo và lý do đề xuất. Cover chỉ là gợi ý trình bày, chưa phải ảnh AI sinh.</p>
+              <p>Mỗi ý có summary để quét nhanh, brief chi tiết khoảng 1.000 ký tự và nút tạo ảnh minh hoạ riêng khi cần.</p>
             </div>
             <div className="de-xuat-thong-ke" aria-label="Tóm tắt kết quả">
               <div>
@@ -87,13 +139,7 @@ export function FormDeXuat() {
               const so = String(i + 1).padStart(2, '0');
               return (
                 <article className="de-xuat-brief" key={`${y.tieuDe}-${i}`}>
-                  <div className={`de-xuat-brief__visual de-xuat-brief__visual--${i % 4}`} aria-hidden="true">
-                    <span>Ý tưởng {so}</span>
-                    <strong>{TEN_BE_MAT[y.beMat]}</strong>
-                    <div className="de-xuat-brief__shape de-xuat-brief__shape--a" />
-                    <div className="de-xuat-brief__shape de-xuat-brief__shape--b" />
-                    <em>Visual brief</em>
-                  </div>
+                  <AnhMinhHoa yTuong={y} so={so} mau={i % 4} />
 
                   <div className="de-xuat-brief__body">
                     <div className="de-xuat-brief__meta">
@@ -122,6 +168,25 @@ export function FormDeXuat() {
                       <span>Vì sao nên làm</span>
                       <p>{y.lyDoDeXuat ?? 'Chưa có lý do đủ rõ; nên sinh lại ý tưởng này.'}</p>
                     </div>
+
+                    <details className="de-xuat-brief__chi-tiet">
+                      <summary>Xem brief đầy đủ</summary>
+                      <div className="de-xuat-brief__chi-tiet-body">
+                        <section>
+                          <span>Content brief</span>
+                          <p className="de-xuat-brief__van-ban">
+                            {y.briefChiTiet ?? 'Model chưa trả về brief chi tiết cho ý tưởng này.'}
+                          </p>
+                        </section>
+
+                        <section>
+                          <span>Gợi ý hình ảnh</span>
+                          <p>{y.hinhAnh?.moTa ?? 'Chưa có mô tả hình ảnh.'}</p>
+                          {y.hinhAnh?.boCuc ? <p><strong>Bố cục:</strong> {y.hinhAnh.boCuc}</p> : null}
+                          {y.hinhAnh?.phongCach ? <p><strong>Phong cách:</strong> {y.hinhAnh.phongCach}</p> : null}
+                        </section>
+                      </div>
+                    </details>
 
                     <footer className="de-xuat-brief__footer">
                       {nguon?.lienKet ? (
