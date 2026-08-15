@@ -3,23 +3,28 @@
 /**
  * `node --test tests/` treats `tests/` as a module entry on current Node
  * versions instead of recursively discovering files. Keep the brief's exact
- * command working by making the directory a tiny test entry that loads every
- * top-level test file. Helper files and fixtures are intentionally ignored.
+ * command working, but delegate the real suite to a CHILD `node --test`
+ * process so Node preserves its normal per-file isolation. Requiring every
+ * test in this process makes shared resources (notably the PostgreSQL pool)
+ * collide during cleanup.
  */
 
+const { spawnSync } = require('node:child_process');
 const { readdirSync } = require('node:fs');
 const path = require('node:path');
-const { pathToFileURL } = require('node:url');
 
 const tepKiemThu = readdirSync(__dirname)
   .filter((ten) => /\.test\.(?:cjs|js|mjs)$/.test(ten))
-  .sort();
+  .sort()
+  .map((ten) => path.join(__dirname, ten));
 
-for (const ten of tepKiemThu) {
-  const dayDu = path.join(__dirname, ten);
-  if (ten.endsWith('.mjs')) {
-    void import(pathToFileURL(dayDu).href);
-  } else {
-    require(dayDu);
-  }
+const ketQua = spawnSync(process.execPath, ['--test', ...tepKiemThu], {
+  cwd: path.join(__dirname, '..'),
+  env: process.env,
+  stdio: 'inherit',
+});
+
+if (ketQua.error) throw ketQua.error;
+if (ketQua.status !== 0) {
+  throw new Error(`Bo kiem thu con thoat voi ma ${ketQua.status ?? 'khong ro'}.`);
 }
