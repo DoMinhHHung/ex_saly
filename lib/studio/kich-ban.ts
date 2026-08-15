@@ -109,7 +109,10 @@ export async function sinhKichBanQuay(
     // Hanh dong tuong tac: user bam lai thi can mot candidate moi.
     khoaChongTrung: null,
     duLieuVao: {
-      bienThe: idea.beMat,
+      // Khong dung `bienThe`: bienThe ghep word-range cua bai viet vao system
+      // prompt, xung dot voi contract script 20-60 giay. Be mat van la context
+      // nghiep vu cho model, nhung khong duoc kich hoat publishing word range.
+      beMat: idea.beMat,
       yTuong: {
         tieuDe: idea.tieuDe,
         gocTiepCan: idea.gocTiepCan,
