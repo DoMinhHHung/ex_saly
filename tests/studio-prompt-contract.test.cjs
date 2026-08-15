@@ -13,7 +13,9 @@ test('idea prompt keeps the grader contract and real-data anchors', () => {
   assert.match(prompt.loiNhac, /TUYET DOI khong bia gia, ty le %/);
   assert.match(prompt.loiNhac, /khong duoc doi thanh mot con so cu the/);
   assert.match(prompt.loiNhac, /PHAI viet tieng Viet co dau day du/);
-  assert.match(prompt.loiNhac, /lyDoDeXuat: 2 cau ngan/);
+  assert.match(prompt.loiNhac, /cauMoDau: 2-3 cau, khoang 35-65 tu/);
+  assert.match(prompt.loiNhac, /lyDoDeXuat: 3 cau, khoang 55-90 tu/);
+  assert.match(prompt.loiNhac, /ban giao viec nho cho content writer/);
   assert.match(prompt.loiNhac, /Sau khi bo dau phai khop dung ten canonical/);
 });
 
