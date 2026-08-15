@@ -11,10 +11,7 @@
 
 .de-xuat-dieu-khien__mo-ta > strong { font-size: 15px; line-height: 1.45; }
 .de-xuat-dieu-khien__mo-ta > span:last-child,
-.de-xuat-ket-qua__dau p,
-.de-xuat-bang__stt,
-.de-xuat-bang__nguon,
-.de-xuat-bang__trong { color: var(--ink-2); }
+.de-xuat-ket-qua__dau p { color: var(--ink-2); }
 
 .de-xuat-nhan {
   color: var(--clay); font-size: 11px; font-weight: 700;
@@ -24,118 +21,119 @@
 .de-xuat-toolbar { display: flex; align-items: flex-end; gap: 10px; margin: 0; }
 .de-xuat-toolbar__field { min-width: 190px; }
 .de-xuat-toolbar__nut { min-height: 42px; white-space: nowrap; transition: opacity 0.18s ease; }
-.de-xuat-toolbar__nut:disabled {
-  opacity: 0.5;
-  cursor: progress;
-  box-shadow: none;
-}
+.de-xuat-toolbar__nut:disabled { opacity: 0.5; cursor: progress; box-shadow: none; }
 
-.de-xuat-ket-qua {
-  display: flex; flex-direction: column; gap: 14px; margin-top: 20px;
-}
-
+.de-xuat-ket-qua { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
 .de-xuat-ket-qua__dau {
   display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
 }
-
-.de-xuat-ket-qua__dau h2 { margin: 3px 0 2px; font-size: 20px; }
-.de-xuat-ket-qua__dau p { margin: 0; font-size: 13px; }
+.de-xuat-ket-qua__dau > div:first-child { max-width: 760px; }
+.de-xuat-ket-qua__dau h2 { margin: 3px 0 4px; font-size: 22px; }
+.de-xuat-ket-qua__dau p { margin: 0; font-size: 13px; line-height: 1.5; }
 
 .de-xuat-thong-ke {
   display: grid; grid-template-columns: repeat(3, minmax(92px, 1fr));
   border: 1px solid var(--line); border-radius: var(--r-md);
   background: var(--surface); overflow: hidden;
 }
-
 .de-xuat-thong-ke > div {
   display: flex; min-width: 96px; flex-direction: column; gap: 2px;
   padding: 10px 14px; border-left: 1px solid var(--line);
 }
-
 .de-xuat-thong-ke > div:first-child { border-left: 0; }
 .de-xuat-thong-ke strong { font-size: 18px; line-height: 1; }
 .de-xuat-thong-ke span { color: var(--ink-2); font-size: 11px; white-space: nowrap; }
 
-.de-xuat-bang-wrap {
-  width: 100%; overflow-x: auto;
-  border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--surface); box-shadow: 0 12px 32px rgb(78 52 31 / 0.04);
+.de-xuat-brief-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;
 }
 
-.de-xuat-bang {
-  width: 100%; min-width: 980px; table-layout: fixed;
-  border-spacing: 0; border-collapse: separate;
+.de-xuat-brief {
+  min-width: 0; overflow: hidden;
+  border: 1px solid var(--line); border-radius: 20px;
+  background: var(--surface); box-shadow: 0 14px 36px rgb(78 52 31 / 0.05);
 }
 
-.de-xuat-bang th,
-.de-xuat-bang td {
-  padding: 14px 16px; border-bottom: 1px solid var(--line);
-  text-align: left; vertical-align: top;
+.de-xuat-brief__visual {
+  position: relative; min-height: 132px; overflow: hidden; padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(135deg, rgb(244 227 208), rgb(252 246 239));
 }
-
-.de-xuat-bang th {
-  background: var(--surface); color: var(--ink-2); font-size: 11px;
-  font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+.de-xuat-brief__visual--1 { background: linear-gradient(135deg, rgb(226 237 224), rgb(248 250 245)); }
+.de-xuat-brief__visual--2 { background: linear-gradient(135deg, rgb(233 227 246), rgb(250 247 253)); }
+.de-xuat-brief__visual--3 { background: linear-gradient(135deg, rgb(224 235 242), rgb(247 250 251)); }
+.de-xuat-brief__visual > span {
+  position: relative; z-index: 2; display: block; margin-bottom: 8px;
+  color: var(--ink-2); font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-
-.de-xuat-bang th:first-child { width: 56px; }
-.de-xuat-bang th:nth-child(2) { width: 34%; }
-.de-xuat-bang th:nth-child(3) { width: 28%; }
-.de-xuat-bang tbody tr:last-child td { border-bottom: 0; }
-.de-xuat-bang tbody tr:hover { background: rgb(248 242 235 / 0.45); }
-.de-xuat-bang__stt { font-size: 12px; font-variant-numeric: tabular-nums; }
-
-.de-xuat-bang__tieu-de {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+.de-xuat-brief__visual > strong {
+  position: relative; z-index: 2; display: block; max-width: 250px;
+  font-size: 20px; line-height: 1.15;
 }
-
-.de-xuat-bang__tieu-de strong { font-size: 15px; line-height: 1.45; }
-.de-xuat-bang__y-tuong blockquote {
-  margin: 9px 0 0; padding-left: 10px; border-left: 2px solid var(--line);
-  color: var(--ink-2); font-size: 13px; line-height: 1.55;
+.de-xuat-brief__visual > em {
+  position: absolute; right: 18px; bottom: 14px; z-index: 2;
+  color: rgb(80 67 56 / 0.62); font-size: 10px; font-style: normal;
+  font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
 }
+.de-xuat-brief__shape {
+  position: absolute; border: 1px solid rgb(88 69 52 / 0.12); border-radius: 999px;
+  background: rgb(255 255 255 / 0.48); backdrop-filter: blur(2px);
+}
+.de-xuat-brief__shape--a { width: 148px; height: 148px; right: -34px; top: -58px; }
+.de-xuat-brief__shape--b { width: 72px; height: 72px; right: 72px; bottom: -28px; }
 
-.de-xuat-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.de-xuat-brief__body { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 16px; }
+.de-xuat-brief__meta { display: flex; flex-wrap: wrap; gap: 6px; }
 .de-xuat-chip {
-  display: inline-flex; width: fit-content; padding: 4px 8px;
+  display: inline-flex; width: fit-content; padding: 5px 9px;
   border: 1px solid var(--line); border-radius: 999px; background: var(--surface);
   font-size: 11px; font-weight: 600;
 }
-
 .de-xuat-chip--muted { color: var(--ink-2); font-weight: 500; }
 .de-xuat-chip--kham-pha { border-color: var(--sage); color: var(--sage); white-space: nowrap; }
-.de-xuat-bang__dinh-vi p { margin: 10px 0 0; font-size: 13px; line-height: 1.45; }
-.de-xuat-bang__dinh-vi p > span {
-  display: block; margin-bottom: 3px; color: var(--ink-2); font-size: 11px;
-  font-weight: 600; text-transform: uppercase;
-}
 
-.de-xuat-bang__ly-do p { margin: 0 0 9px; font-size: 13px; line-height: 1.55; }
-.de-xuat-bang__ly-do a,
-.de-xuat-bang__nguon,
-.de-xuat-bang__trong { font-size: 12px; }
-.de-xuat-bang__ly-do a { color: var(--ink-2); font-weight: 600; text-decoration: none; }
-.de-xuat-bang__ly-do a:hover { text-decoration: underline; }
+.de-xuat-brief h3 { margin: 0; font-size: 19px; line-height: 1.35; }
+.de-xuat-brief__hook {
+  padding: 12px 14px; border-left: 3px solid var(--clay); border-radius: 0 12px 12px 0;
+  background: rgb(248 242 235 / 0.55);
+}
+.de-xuat-brief__hook > span,
+.de-xuat-brief__muc > span {
+  display: block; margin-bottom: 5px; color: var(--ink-2); font-size: 10px;
+  font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+}
+.de-xuat-brief__hook blockquote { margin: 0; font-size: 14px; line-height: 1.6; }
+.de-xuat-brief__muc p { margin: 0; font-size: 13px; line-height: 1.6; }
+.de-xuat-brief__muc--ly-do {
+  padding-top: 12px; border-top: 1px dashed var(--line);
+}
+.de-xuat-brief__footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-top: 12px; border-top: 1px solid var(--line);
+  color: var(--ink-2); font-size: 11px;
+}
+.de-xuat-brief__footer a { color: var(--ink-2); font-weight: 600; text-decoration: none; }
+.de-xuat-brief__footer a:hover { text-decoration: underline; }
 
 .de-xuat-rong {
   display: flex; align-items: center; gap: 16px; min-height: 120px; padding: 22px;
   border: 1px dashed var(--line); border-radius: var(--r-md); background: var(--surface);
 }
-
 .de-xuat-rong__so {
   display: grid; width: 52px; height: 52px; flex: 0 0 auto; place-items: center;
   border: 1px solid var(--line); border-radius: 16px;
   color: var(--clay); font-size: 20px; font-weight: 700;
 }
-
 .de-xuat-rong p { max-width: 700px; margin-bottom: 0; }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .de-xuat-dieu-khien,
   .de-xuat-ket-qua__dau { align-items: stretch; flex-direction: column; }
   .de-xuat-toolbar { align-items: stretch; }
   .de-xuat-toolbar__field { flex: 1; }
   .de-xuat-thong-ke { width: fit-content; }
+  .de-xuat-brief-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -144,4 +142,7 @@
   .de-xuat-toolbar__nut,
   .de-xuat-thong-ke { width: 100%; }
   .de-xuat-thong-ke > div { min-width: 0; padding: 9px 10px; }
+  .de-xuat-brief__visual { min-height: 112px; }
+  .de-xuat-brief__body { padding: 16px; }
+  .de-xuat-brief__footer { align-items: flex-start; flex-direction: column; }
 }
