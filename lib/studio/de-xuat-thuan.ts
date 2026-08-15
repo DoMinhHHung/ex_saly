@@ -8,11 +8,27 @@ function chuoi(tho: unknown): string | null {
   return typeof tho === 'string' && tho.trim() !== '' ? tho.trim() : null;
 }
 
+/**
+ * Ten entity trong seed duoc luu khong dau, trong khi model co the tra ve cung
+ * ten do voi dau tieng Viet. Chuan hoa CHI de doi chieu ten canonical; khong
+ * fuzzy/semantic match de tranh bien ten model bia ra thanh entity that.
+ */
+function khoaTen(ten: string): string {
+  return ten
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLocaleLowerCase('vi')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function tenThat(tho: unknown, danhSach: string[]): string | null {
   const ten = chuoi(tho);
   if (!ten) return null;
-  const khoa = ten.toLocaleLowerCase('vi');
-  return danhSach.find((muc) => muc.toLocaleLowerCase('vi') === khoa) ?? null;
+  const khoa = khoaTen(ten);
+  return danhSach.find((muc) => khoaTen(muc) === khoa) ?? null;
 }
 
 export function donKetQuaDeXuat(

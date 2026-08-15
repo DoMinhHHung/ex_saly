@@ -1,4 +1,8 @@
 import { createRepo, trongGiaoDich } from '@/lib/data-access';
+import type { TruCot } from '@/lib/data-access/content-pillars';
+import type { Insight } from '@/lib/data-access/insights';
+import type { ChanDung } from '@/lib/data-access/personas';
+import type { SanPham } from '@/lib/data-access/products';
 import { chayNhiemVu } from '@/lib/model-runner';
 import { kiemTraDoDai, layKhoangTu } from './cong-dem-tu';
 import type { BeMat, KetQuaStudio } from './kieu';
@@ -67,8 +71,8 @@ export async function bienSoanBai(
     repo.insight.list(20),
     repo.contents.list({ beMat: idea.beMat, trangThai: 'da_dang', gioiHan: 12 }),
   ]);
-  const pillar = truCot.find((t) => t.id === idea.pillarId) ?? null;
-  const persona = chanDung.find((c) => c.id === idea.personaId) ?? null;
+  const pillar = truCot.find((t: TruCot) => t.id === idea.pillarId) ?? null;
+  const persona = chanDung.find((c: ChanDung) => c.id === idea.personaId) ?? null;
   const khoangTu = layKhoangTu(idea.beMat);
 
   const chay = await chayNhiemVu({
@@ -90,7 +94,7 @@ export async function bienSoanBai(
       chanDung: persona
         ? { ten: persona.ten, noiDau: persona.noiDau, mongMuon: persona.mongMuon, cauNoiThuongDung: persona.cauNoiThuongDung }
         : null,
-      sanPham: sanPham.map((p) => ({
+      sanPham: sanPham.map((p: SanPham) => ({
         ten: p.ten,
         gia: p.gia,
         loiIch: p.loiIch,
@@ -98,7 +102,7 @@ export async function bienSoanBai(
         loiKeuGoi: p.loiKeuGoi,
         lienKet: p.lienKet,
       })),
-      insight: insight.map((i) => ({ noiDung: i.noiDung, bangChung: i.bangChung })),
+      insight: insight.map((i: Insight) => ({ noiDung: i.noiDung, bangChung: i.bangChung })),
       baiGanDay: baiGanDay.map((b) => ({ cauMoDau: b.cauMoDau, gocTiepCan: b.gocTiepCan })),
     },
   });

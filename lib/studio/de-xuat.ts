@@ -1,6 +1,10 @@
 import { nguoiDungHienTai } from '@/lib/auth/nguoi-dung-tu-phien';
 import { NGUONG_CHAN_DE_XUAT } from '@/lib/brand/do-day-du';
 import { createRepo, trongGiaoDich } from '@/lib/data-access';
+import type { TruCot } from '@/lib/data-access/content-pillars';
+import type { Insight } from '@/lib/data-access/insights';
+import type { ChanDung } from '@/lib/data-access/personas';
+import type { SanPham } from '@/lib/data-access/products';
 import { chayNhiemVu } from '@/lib/model-runner';
 import { bocCongThucChoBaiMoi, daBocXong, type CongThuc } from './boc-cong-thuc';
 import { canBangKhamPha, donKetQuaDeXuat, type TruCotMucTieu } from './de-xuat-thuan';
@@ -61,10 +65,10 @@ export async function deXuatYTuong(thamSo: ThamSoDeXuat): Promise<KetQuaStudio<Y
     duLieuVao: {
       soLuong: Math.max(soLuong * 2, soLuong + 6), beMat: thamSo.beMat, tiLeKhamPha: TI_LE_KHAM_PHA,
       hoSo: { moTa: hoSo.moTa, giongDieu: hoSo.giongDieu, dieuCamKy: hoSo.dieuCamKy },
-      truCot: truCot.map((t) => ({ ten: t.ten, mucDich: t.mucDich, tiLeMucTieu: t.tiLeMucTieu })),
-      chanDung: chanDung.map((c) => ({ ten: c.ten, noiDau: c.noiDau, mongMuon: c.mongMuon, cauNoiThuongDung: c.cauNoiThuongDung })),
-      insight: insight.map((i) => ({ noiDung: i.noiDung, bangChung: i.bangChung })),
-      sanPham: sanPham.map((s) => ({ ten: s.ten, loiIch: s.loiIch, phanDoiThuongGap: s.phanDoiThuongGap })),
+      truCot: truCot.map((t: TruCot) => ({ ten: t.ten, mucDich: t.mucDich, tiLeMucTieu: t.tiLeMucTieu })),
+      chanDung: chanDung.map((c: ChanDung) => ({ ten: c.ten, noiDau: c.noiDau, mongMuon: c.mongMuon, cauNoiThuongDung: c.cauNoiThuongDung })),
+      insight: insight.map((i: Insight) => ({ noiDung: i.noiDung, bangChung: i.bangChung })),
+      sanPham: sanPham.map((s: SanPham) => ({ ten: s.ten, loiIch: s.loiIch, phanDoiThuongGap: s.phanDoiThuongGap })),
       baiDaDangGanDay: baiDaDang.map((b) => ({ gocTiepCan: b.gocTiepCan, cauMoDau: b.cauMoDau })),
       thamKhaoXuHuong: thamKhao,
     },
@@ -73,11 +77,11 @@ export async function deXuatYTuong(thamSo: ThamSoDeXuat): Promise<KetQuaStudio<Y
     return { ok: false, loi: ketQua.loi ?? 'Mo hinh khong tra ve ket qua.', canhBao };
   }
 
-  const tenTruCot = truCot.map((t) => t.ten);
-  const tenChanDung = chanDung.map((c) => c.ten);
+  const tenTruCot = truCot.map((t: TruCot) => t.ten);
+  const tenChanDung = chanDung.map((c: ChanDung) => c.ten);
   const daDon = donKetQuaDeXuat(ketQua.ketQua, tenTruCot, tenChanDung, thamSo.beMat)
     .filter((y) => y.truCot !== null && y.chanDung !== null);
-  const mucTieu: TruCotMucTieu[] = truCot.map((t) => ({
+  const mucTieu: TruCotMucTieu[] = truCot.map((t: TruCot) => ({
     ten: t.ten,
     tiLeMucTieu: t.tiLeMucTieu === null ? null : Number(t.tiLeMucTieu),
   }));
@@ -95,8 +99,8 @@ export async function deXuatYTuong(thamSo: ThamSoDeXuat): Promise<KetQuaStudio<Y
   await trongGiaoDich(thamSo.workspaceId, async (tx) => {
     const idDaDung: string[] = [];
     for (const { y, trendSignalId, lyDo } of sach) {
-      const tc = truCot.find((t) => t.ten === y.truCot);
-      const cd = chanDung.find((c) => c.ten === y.chanDung);
+      const tc = truCot.find((t: TruCot) => t.ten === y.truCot);
+      const cd = chanDung.find((c: ChanDung) => c.ten === y.chanDung);
       await tx.yTuong.tao({
         tieuDe: y.tieuDe,
         khamPha: y.khamPha,

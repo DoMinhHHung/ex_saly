@@ -22,6 +22,28 @@ test('donKetQuaDeXuat validates profile names and keeps the requested surface', 
   assert.equal(out[1].khamPha, true);
 });
 
+test('donKetQuaDeXuat accepts Vietnamese diacritics but returns canonical DB names', () => {
+  const out = donKetQuaDeXuat({ yTuong: [
+    {
+      tieuDe: 'A',
+      truCot: 'Xây lòng tin',
+      chanDung: 'Chị Hà bán đồ ăn nhà làm',
+      beMat: 'fanpage',
+    },
+    {
+      tieuDe: 'B',
+      truCot: 'Kiến thức giáo dục',
+      chanDung: 'Chủ shop cao cấp',
+      beMat: 'fanpage',
+    },
+  ] }, ['Xay long tin'], ['Chi Ha ban do an nha lam'], 'fanpage');
+
+  assert.equal(out[0].truCot, 'Xay long tin');
+  assert.equal(out[0].chanDung, 'Chi Ha ban do an nha lam');
+  assert.equal(out[1].truCot, null);
+  assert.equal(out[1].chanDung, null);
+});
+
 test('raiTheoTruCot respects target ratios', () => {
   const tao = (truCot, i) => ({ tieuDe: `${truCot}-${i}`, truCot, chanDung: 'Chi Ha', gocTiepCan: null, cauMoDau: null, lyDoDeXuat: null, beMat: 'fanpage', khamPha: false });
   const input = [...Array.from({ length: 10 }, (_, i) => tao('A', i)), ...Array.from({ length: 10 }, (_, i) => tao('B', i))];

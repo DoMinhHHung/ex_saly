@@ -10,6 +10,8 @@ test('idea prompt keeps the grader contract and real-data anchors', () => {
   assert.match(prompt.loiNhac, /DUNG ten mot tru cot/);
   assert.match(prompt.loiNhac, /thamKhaoXuHuong/);
   assert.match(prompt.loiNhac, /kham_pha/);
+  assert.match(prompt.loiNhac, /TUYET DOI khong bia gia, ty le %/);
+  assert.match(prompt.loiNhac, /khong duoc doi thanh mot con so cu the/);
 });
 
 test('post prompt keeps the grader contract and fact-safety rules', () => {

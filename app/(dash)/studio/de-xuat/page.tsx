@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { FormDeXuat } from './form-de-xuat';
+import './de-xuat.css';
 import '../studio.css';
 
 export const metadata: Metadata = {
