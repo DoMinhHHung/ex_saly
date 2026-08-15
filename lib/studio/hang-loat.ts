@@ -1,11 +1,19 @@
 import { createRepo } from '@/lib/data-access';
-import type { Idea } from '@/lib/data-access/ideas';
 import { bienSoanBai } from './bien-soan';
 import { deXuatYTuong } from './de-xuat';
+import {
+  chonYTuongHangLoat,
+  chuanHoaSoLuongHangLoat,
+  type YTuongChoHangLoat,
+} from './hang-loat-thuan';
 import type { BeMat, KetQuaStudio } from './kieu';
 
-export const SO_BAI_HANG_LOAT_MAC_DINH = 10;
-export const SO_BAI_HANG_LOAT_TOI_DA = 10;
+export {
+  chonYTuongHangLoat,
+  chuanHoaSoLuongHangLoat,
+  SO_BAI_HANG_LOAT_MAC_DINH,
+  SO_BAI_HANG_LOAT_TOI_DA,
+} from './hang-loat-thuan';
 
 export type KetQuaMotBaiHangLoat = {
   ideaId: string;
@@ -31,28 +39,7 @@ export type ThamSoHangLoat = {
   soLuong?: number;
 };
 
-export function chuanHoaSoLuongHangLoat(soLuong: unknown): number {
-  const n = Number(soLuong);
-  if (!Number.isFinite(n)) return SO_BAI_HANG_LOAT_MAC_DINH;
-  return Math.max(1, Math.min(SO_BAI_HANG_LOAT_TOI_DA, Math.floor(n)));
-}
-
-/**
- * M4 chi dung idea chua tung duoc bien thanh content va dung be mat user chon.
- * Repo list da sort moi -> cu, nen batch uu tien y tuong moi nhat.
- */
-export function chonYTuongHangLoat(
-  ideas: Pick<Idea, 'id' | 'beMat' | 'daDung' | 'tieuDe' | 'gocTiepCan'>[],
-  beMat: BeMat,
-  soLuong: number,
-) {
-  const gioiHan = chuanHoaSoLuongHangLoat(soLuong);
-  return ideas
-    .filter((idea) => idea.beMat === beMat && idea.daDung === false)
-    .slice(0, gioiHan);
-}
-
-function tenIdea(idea: Pick<Idea, 'id' | 'tieuDe' | 'gocTiepCan'>): string {
+function tenIdea(idea: Pick<YTuongChoHangLoat, 'id' | 'tieuDe' | 'gocTiepCan'>): string {
   return idea.tieuDe ?? idea.gocTiepCan ?? `Ý tưởng ${idea.id.slice(0, 8)}`;
 }
 
@@ -65,13 +52,15 @@ function laLoiNoiDungCoTheThuLai(loi: string): boolean {
 
 async function bienSoanMotIdea(
   workspaceId: string,
-  idea: Pick<Idea, 'id' | 'tieuDe' | 'gocTiepCan'>,
+  idea: Pick<YTuongChoHangLoat, 'id' | 'tieuDe' | 'gocTiepCan'>,
 ): Promise<KetQuaMotBaiHangLoat> {
   let loiCuoi: string | null = null;
+  let soLanThu = 0;
 
   // Retry dung mot lan CHI cho loi semantic do output model: sai JSON/word range.
   // Loi provider/queue/timeout de hang doi tu xu ly, khong lap tuc nhan doi request.
   for (let lan = 1; lan <= 2; lan += 1) {
+    soLanThu = lan;
     try {
       const ketQua = await bienSoanBai({ workspaceId, ideaId: idea.id });
       if (ketQua.ok) {
@@ -99,7 +88,7 @@ async function bienSoanMotIdea(
     ok: false,
     contentId: null,
     loi: loiCuoi ?? 'Không sinh được bài.',
-    soLanThu: 2,
+    soLanThu,
   };
 }
 
