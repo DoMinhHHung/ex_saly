@@ -18,10 +18,11 @@ export async function sinhHangLoatAction(form: FormData) {
     denTrang({ loi: 'Bề mặt không hợp lệ.' });
   }
 
+  const soLuong = typeof soLuongTho === 'string' ? Number(soLuongTho) : undefined;
   const ketQua = await sinhHangLoatBai({
     workspaceId: await workspaceHienTai(),
     beMat: beMatTho as BeMat,
-    soLuong: soLuongTho,
+    soLuong,
   });
 
   if (!ketQua.ok) {
