@@ -2,7 +2,7 @@
 
 ## Phạm vi đã hoàn thành
 
-Tôi hoàn thiện luồng core đến **mốc 3** và mở rộng thêm một lát cắt nhỏ của **mốc 5** theo kiểu on-demand. Tôi không coi mốc 5 là hoàn thành: ảnh hiện phục vụ preview cho một brief được chọn, chưa có batch generation hay lifecycle asset đầy đủ.
+Tôi hoàn thiện luồng core đến **mốc 4** và mở rộng thêm một lát cắt nhỏ của **mốc 5** theo kiểu on-demand. Tôi không coi mốc 5 là hoàn thành: ảnh hiện phục vụ preview cho một brief được chọn, chưa có batch generation hay lifecycle asset đầy đủ.
 
 ### Mốc 1 — Đề xuất ý tưởng
 
@@ -39,6 +39,17 @@ Tôi hoàn thiện luồng core đến **mốc 3** và mở rộng thêm một l
 - Kịch bản được persist vào `contents` với `dang_bai = kich_ban_quay`, `trang_thai = ban_nhap`; không thêm schema riêng chỉ để giữ một JSON phân cảnh đã có chỗ lưu phù hợp.
 - UI hiển thị timeline cảnh, tổng thời lượng và cho sửa trực tiếp thời lượng, hướng hình ảnh, lời thoại rồi lưu lại.
 - Server chỉ cho sửa content thuộc workspace hiện tại, trạng thái `ban_nhap` và đúng `dang_bai = kich_ban_quay`.
+
+### Mốc 4 — Sinh hàng loạt 10 bài/ngày
+
+- Hoàn thiện `/studio/hang-loat` với mặc định 10 bài và giới hạn tối đa 10 bài mỗi lượt.
+- Batch ưu tiên các idea chưa dùng mới nhất đúng bề mặt user chọn. Nếu thiếu idea, hệ thống gọi lại `deXuatYTuong()` để tự bù phần thiếu rồi mới bắt đầu viết.
+- Mỗi bài vẫn đi qua `bienSoanBai()` riêng thay vì có một prompt batch mới, nên giữ nguyên fact-safety, word-range validation, provenance và workspace isolation của Mốc 2.
+- Các job được enqueue đồng thời, còn giới hạn thực thi model vẫn do worker-model hiện có quản lý; không tạo thêm một concurrency mechanism thứ hai trong UI/business layer.
+- Output sai JSON/word range được retry đúng một lần ở orchestration layer. Lỗi provider/queue/timeout không bị retry nóng vì queue đã có backoff riêng.
+- Batch dùng partial-success semantics: bài thành công được persist và giữ lại, bài lỗi không được persist. Một bài lỗi không rollback chín bài hợp lệ khác.
+- UI hiển thị số bài thành công, số bài chưa đạt, số idea tự bù và link mở từng draft sang `/studio/bien-soan` để chỉnh tiếp.
+- Query `content` sau batch chỉ được resolve lại qua `createRepo(workspaceId)`, nên ID từ workspace khác không thể được dùng để hiển thị draft chéo tenant.
 
 ### Mốc 5 — lát cắt sinh ảnh on-demand
 
@@ -78,13 +89,16 @@ Schema gốc ghi rõ phần core đã frozen, trong khi mốc 1 cần lưu đủ
 
 `contents` đã có `dang_bai = kich_ban_quay`, `idea_id`, trạng thái draft và các trường provenance nghiệp vụ. Tôi lưu JSON phân cảnh có version vào `noi_dung` thay vì thêm bảng/schema chỉ để đi qua Mốc 3. UI luôn parse/validate lại trước khi render và trước khi save, nên vẫn giữ được cấu trúc mà không nhân đôi persistence model.
 
-### 7. Sinh ảnh theo yêu cầu thay vì eager batch
+### 7. Mốc 4 là orchestration, không phải một model contract mới
+
+Tôi không tạo một prompt “hãy viết 10 bài” vì như vậy validation của Mốc 2 sẽ khó áp riêng cho từng item và một output lỗi có thể làm hỏng cả batch. Mốc 4 chỉ điều phối Mốc 1 + Mốc 2: top-up idea khi thiếu, enqueue từng bài, giữ worker concurrency hiện có và thu kết quả theo partial-success. Cách này ít code mới hơn nhưng giữ được các invariant đã chứng minh ở single-item flow.
+
+### 8. Sinh ảnh theo yêu cầu thay vì eager batch
 
 Một lượt idea có 10 brief. Nếu đồng thời gọi 10 image requests, Mốc 1 sẽ chậm, tốn quota và fail theo provider ảnh dù phần idea đã đúng. Vì vậy ảnh chỉ sinh khi user chọn một brief cần xem visual. Đây là trade-off cố ý để core flow vẫn độc lập với image provider.
 
 ## Phần chưa làm và lý do
 
-- **Mốc 4 — sinh hàng loạt 10 bài/ngày:** chưa làm. Đây là orchestration trên core mốc 1–3; sẽ là bước tiếp theo nếu còn thời gian.
 - **Mốc 5 — sinh ảnh đầy đủ:** chưa hoàn thành. Đã có on-demand preview + storage workspace-scoped, nhưng chưa persist quan hệ ảnh ↔ idea/content, chưa có regenerate history, moderation/review workflow, batch image generation hay cleanup policy cho asset cũ.
 
 ## Kiểm trước khi nộp
@@ -97,6 +111,6 @@ node --test tests/
 npm run build
 ```
 
-Sau đó chạy một lượt Gemini thật cho từng vertical slice chính: sinh idea, biên soạn bài và tạo một kịch bản quay từ idea đã lưu. Ảnh là best-effort vì phụ thuộc quota riêng của image model.
+Sau đó chạy một lượt Gemini thật cho các vertical slice chính: sinh idea, biên soạn bài, tạo một kịch bản quay và chạy `/studio/hang-loat` với một batch nhỏ trước khi thử đủ 10 bài. Ảnh là best-effort vì phụ thuộc quota riêng của image model.
 
 Không hard-code API key hoặc secret vào repository.
