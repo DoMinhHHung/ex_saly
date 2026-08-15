@@ -7,6 +7,13 @@ import { deXuatAction, type TrangThaiDeXuat } from './actions';
 
 const BAN_DAU: TrangThaiDeXuat = { yTuong: [], nguonThamKhao: [], loi: null, canhBao: [] };
 
+const TEN_BE_MAT = {
+  fanpage: 'Facebook fanpage',
+  ho_so_ca_nhan: 'Hồ sơ cá nhân',
+  tiktok: 'TikTok',
+  zalo: 'Zalo',
+} as const;
+
 function NutDeXuat() {
   const { pending } = useFormStatus();
   return (
@@ -55,8 +62,8 @@ export function FormDeXuat() {
           <div className="de-xuat-ket-qua__dau">
             <div>
               <span className="de-xuat-nhan">Kết quả mới nhất</span>
-              <h2>{trangThai.yTuong.length} ý tưởng hợp lệ</h2>
-              <p>Đã chuẩn hóa lại trụ cột và chân dung theo dữ liệu canonical của workspace.</p>
+              <h2>{trangThai.yTuong.length} content brief sẵn để chọn</h2>
+              <p>Mỗi brief có hook, góc triển khai, dữ liệu neo và lý do đề xuất. Cover chỉ là gợi ý trình bày, chưa phải ảnh AI sinh.</p>
             </div>
             <div className="de-xuat-thong-ke" aria-label="Tóm tắt kết quả">
               <div>
@@ -74,51 +81,60 @@ export function FormDeXuat() {
             </div>
           </div>
 
-          <div className="de-xuat-bang-wrap">
-            <table className="de-xuat-bang">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Ý tưởng</th>
-                  <th scope="col">Định vị</th>
-                  <th scope="col">Lý do đề xuất</th>
-                </tr>
-              </thead>
-              <tbody>
-                {trangThai.yTuong.map((y, i) => {
-                  const nguon = trangThai.nguonThamKhao.find((n) => n.viTri === i);
-                  return (
-                    <tr key={`${y.tieuDe}-${i}`}>
-                      <td className="de-xuat-bang__stt">{String(i + 1).padStart(2, '0')}</td>
-                      <td className="de-xuat-bang__y-tuong">
-                        <div className="de-xuat-bang__tieu-de">
-                          <strong>{y.tieuDe}</strong>
-                          {y.khamPha ? <span className="de-xuat-chip de-xuat-chip--kham-pha">Khám phá</span> : null}
-                        </div>
-                        {y.cauMoDau ? <blockquote>{y.cauMoDau}</blockquote> : null}
-                      </td>
-                      <td className="de-xuat-bang__dinh-vi">
-                        <div className="de-xuat-chip-row">
-                          <span className="de-xuat-chip">{y.truCot}</span>
-                          <span className="de-xuat-chip de-xuat-chip--muted">{y.chanDung}</span>
-                        </div>
-                        {y.gocTiepCan ? (
-                          <p><span>Góc tiếp cận</span>{y.gocTiepCan}</p>
-                        ) : null}
-                      </td>
-                      <td className="de-xuat-bang__ly-do">
-                        {y.lyDoDeXuat ? <p>{y.lyDoDeXuat}</p> : <span className="de-xuat-bang__trong">Chưa có lý do.</span>}
-                        {nguon?.lienKet ? (
-                          <a href={nguon.lienKet} target="_blank" rel="noreferrer">Mở bài tham khảo ↗</a>
-                        ) : (
-                          <span className="de-xuat-bang__nguon">Nguồn: dữ liệu workspace</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="de-xuat-brief-grid">
+            {trangThai.yTuong.map((y, i) => {
+              const nguon = trangThai.nguonThamKhao.find((n) => n.viTri === i);
+              const so = String(i + 1).padStart(2, '0');
+              return (
+                <article className="de-xuat-brief" key={`${y.tieuDe}-${i}`}>
+                  <div className={`de-xuat-brief__visual de-xuat-brief__visual--${i % 4}`} aria-hidden="true">
+                    <span>Ý tưởng {so}</span>
+                    <strong>{TEN_BE_MAT[y.beMat]}</strong>
+                    <div className="de-xuat-brief__shape de-xuat-brief__shape--a" />
+                    <div className="de-xuat-brief__shape de-xuat-brief__shape--b" />
+                    <em>Visual brief</em>
+                  </div>
+
+                  <div className="de-xuat-brief__body">
+                    <div className="de-xuat-brief__meta">
+                      <span className="de-xuat-chip">{y.truCotHienThi ?? y.truCot}</span>
+                      <span className="de-xuat-chip de-xuat-chip--muted">{y.chanDungHienThi ?? y.chanDung}</span>
+                      {y.khamPha ? <span className="de-xuat-chip de-xuat-chip--kham-pha">Khám phá</span> : null}
+                    </div>
+
+                    <h3>{y.tieuDe}</h3>
+
+                    {y.cauMoDau ? (
+                      <div className="de-xuat-brief__hook">
+                        <span>Hook đề xuất</span>
+                        <blockquote>{y.cauMoDau}</blockquote>
+                      </div>
+                    ) : null}
+
+                    {y.gocTiepCan ? (
+                      <div className="de-xuat-brief__muc">
+                        <span>Góc tiếp cận</span>
+                        <p>{y.gocTiepCan}</p>
+                      </div>
+                    ) : null}
+
+                    <div className="de-xuat-brief__muc de-xuat-brief__muc--ly-do">
+                      <span>Vì sao nên làm</span>
+                      <p>{y.lyDoDeXuat ?? 'Chưa có lý do đủ rõ; nên sinh lại ý tưởng này.'}</p>
+                    </div>
+
+                    <footer className="de-xuat-brief__footer">
+                      {nguon?.lienKet ? (
+                        <a href={nguon.lienKet} target="_blank" rel="noreferrer">Mở nguồn tham khảo ↗</a>
+                      ) : (
+                        <span>Nguồn: hồ sơ + dữ liệu workspace</span>
+                      )}
+                      <span>{TEN_BE_MAT[y.beMat]}</span>
+                    </footer>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
       ) : (
