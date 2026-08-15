@@ -4,11 +4,12 @@
  * `node --test tests/` treats `tests/` as a package/module entry on current
  * Node versions instead of recursively discovering every test file.
  *
- * Keep the brief's exact command working while preserving the isolation that
- * Node normally gives separate test files. Running every file in one child
- * test-runner invocation can still let process-wide state (environment and
- * shared PostgreSQL pools loaded through TS/CJS bridges) interfere across
- * files on newer Node versions, so execute each file in its own process.
+ * Keep the brief's exact command working while preserving per-file process
+ * isolation. This file itself is already running under Node's test runner, so
+ * spawning another `node --test` recursively makes Node skip the child files.
+ * Execute each test file as a normal Node entry instead: importing `node:test`
+ * still runs its registered tests and propagates a failing exit status, while
+ * every file gets a fresh process/environment/PostgreSQL pool.
  *
  * The local `.env` intentionally contains the API provider used by the live
  * demo. Unit tests for model selection must not inherit that runtime choice;
@@ -36,7 +37,7 @@ const envKiemThu = {
 const thatBai = [];
 for (const ten of tepKiemThu) {
   const duongDan = path.join(__dirname, ten);
-  const ketQua = spawnSync(process.execPath, ['--test', duongDan], {
+  const ketQua = spawnSync(process.execPath, [duongDan], {
     cwd: path.join(__dirname, '..'),
     env: envKiemThu,
     stdio: 'inherit',
