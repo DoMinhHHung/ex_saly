@@ -62,6 +62,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <p className="nav__group">Nội dung</p>
           <Link className="nav__link" href="/studio/de-xuat"><Icon name="i-sparkle" size={18} />Đề xuất hôm nay</Link>
           <Link className="nav__link" href="/studio/bien-soan"><Icon name="i-text" size={18} />Biên soạn</Link>
+          <Link className="nav__link" href="/studio/kich-ban"><Icon name="i-copy" size={18} />Kịch bản quay</Link>
           <Link className="nav__link" href="/studio/chuoi-bai"><Icon name="i-layers" size={18} />Chuỗi bài</Link>
           <Link className="nav__link" href="/studio/hang-loat"><Icon name="i-copy" size={18} />Sinh hàng loạt</Link>
           <Link className="nav__link" href="/studio/so-giong"><Icon name="i-eye" size={18} />So 4 giọng</Link>
@@ -119,8 +120,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="marquee" aria-hidden="true">
             <div className="marquee__track">
-              <span>Bản v1 — module quét trend đang chạy thử, dữ liệu cập nhật 2 lần mỗi ngày. Mẫu mới cho nhóm kịch bản video sẽ bổ sung trong tuần này.</span>
-              <span>Bản v1 — module quét trend đang chạy thử, dữ liệu cập nhật 2 lần mỗi ngày. Mẫu mới cho nhóm kịch bản video sẽ bổ sung trong tuần này.</span>
+              <span>Bản v1 — module quét trend và kịch bản video đang chạy thử, dữ liệu cập nhật 2 lần mỗi ngày.</span>
+              <span>Bản v1 — module quét trend và kịch bản video đang chạy thử, dữ liệu cập nhật 2 lần mỗi ngày.</span>
             </div>
           </div>
 
