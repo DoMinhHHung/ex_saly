@@ -11,6 +11,12 @@ export type YTuongDeXuat = {
   tieuDe: string;
   truCot: string | null;
   chanDung: string | null;
+  /**
+   * Nhan chi de hien thi. Hai truong canonical phia tren van la source of truth
+   * de validate/persist. Model chi duoc them dau tieng Viet, khong duoc doi tu.
+   */
+  truCotHienThi?: string | null;
+  chanDungHienThi?: string | null;
   gocTiepCan: string | null;
   cauMoDau: string | null;
   lyDoDeXuat: string | null;
