@@ -1,4 +1,4 @@
-import type { BeMat, YTuongDeXuat } from './kieu';
+import type { BeMat, GoiYHinhAnh, YTuongDeXuat } from './kieu';
 
 export type TruCotMucTieu = { ten: string; tiLeMucTieu: number | null };
 
@@ -41,6 +41,18 @@ function tenHienThi(tho: unknown, canonical: string | null): string | null {
   return khoaTen(ten) === khoaTen(canonical) ? ten : canonical;
 }
 
+function goiYHinhAnh(tho: unknown): GoiYHinhAnh | null {
+  if (!tho || typeof tho !== 'object' || Array.isArray(tho)) return null;
+  const h = tho as MucTho;
+  const ketQua: GoiYHinhAnh = {
+    moTa: chuoi(h.moTa),
+    boCuc: chuoi(h.boCuc),
+    phongCach: chuoi(h.phongCach),
+    prompt: chuoi(h.prompt),
+  };
+  return Object.values(ketQua).some((v) => v !== null) ? ketQua : null;
+}
+
 export function donKetQuaDeXuat(
   tho: unknown,
   truCotHopLe: string[] = [],
@@ -66,6 +78,8 @@ export function donKetQuaDeXuat(
       gocTiepCan: chuoi(m.gocTiepCan),
       cauMoDau: chuoi(m.cauMoDau),
       lyDoDeXuat: chuoi(m.lyDoDeXuat),
+      briefChiTiet: chuoi(m.briefChiTiet),
+      hinhAnh: goiYHinhAnh(m.hinhAnh),
       // Be mat la tham so server da chot. Khong cho output model doi dich den.
       beMat: beMatMacDinh,
       khamPha: m.kham_pha === true || m.khamPha === true,
