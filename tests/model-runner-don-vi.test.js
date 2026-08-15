@@ -18,6 +18,17 @@ const { layLoiNhac, loiNhacSuaDinhDang } = require('../lib/model-runner/loi-nhac
 const { tinhChiPhiUocTinh } = require('../lib/model-runner/ghi-nhat-ky');
 const runnerApi = require('../lib/model-runner/runner-api');
 
+function khongCoAiProvider(viec) {
+  const truoc = process.env.AI_PROVIDER;
+  delete process.env.AI_PROVIDER;
+  try {
+    return viec();
+  } finally {
+    if (truoc === undefined) delete process.env.AI_PROVIDER;
+    else process.env.AI_PROVIDER = truoc;
+  }
+}
+
 describe('chon mo hinh (PRD 8.3)', () => {
   it('bay nhiem vu cua PRD muc 8.2 deu co mac dinh va co loai viec tuong ung', () => {
     assert.equal(NHIEM_VU_HOP_LE.length, 7);
@@ -28,15 +39,19 @@ describe('chon mo hinh (PRD 8.3)', () => {
   });
 
   it('viec sai mot lan la sai ca he thong -> mo hinh manh', () => {
-    assert.equal(chonMoHinh('boc-tach-ho-so'), MO_HINH_MANH);
-    assert.equal(chonMoHinh('de-xuat-y-tuong'), MO_HINH_MANH);
-    assert.equal(chonMoHinh('viet-bai'), MO_HINH_MANH);
+    khongCoAiProvider(() => {
+      assert.equal(chonMoHinh('boc-tach-ho-so'), MO_HINH_MANH);
+      assert.equal(chonMoHinh('de-xuat-y-tuong'), MO_HINH_MANH);
+      assert.equal(chonMoHinh('viet-bai'), MO_HINH_MANH);
+    });
   });
 
   it('viec chay hang loat -> mo hinh nhanh/re', () => {
-    assert.equal(chonMoHinh('cham-chat-luong'), MO_HINH_NHANH);
-    assert.equal(chonMoHinh('phan-loai-binh-luan'), MO_HINH_NHANH);
-    assert.equal(chonMoHinh('cham-diem-lien-quan'), MO_HINH_NHANH);
+    khongCoAiProvider(() => {
+      assert.equal(chonMoHinh('cham-chat-luong'), MO_HINH_NHANH);
+      assert.equal(chonMoHinh('phan-loai-binh-luan'), MO_HINH_NHANH);
+      assert.equal(chonMoHinh('cham-diem-lien-quan'), MO_HINH_NHANH);
+    });
   });
 
   it('nguoi dung chon thi ton trong lua chon do', () => {
