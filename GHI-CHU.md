@@ -2,7 +2,7 @@
 
 ## Phạm vi đã hoàn thành
 
-Tôi hoàn thiện luồng core đến **mốc 2** và chỉ mở rộng thêm một lát cắt nhỏ của **mốc 5** theo kiểu on-demand. Tôi không coi mốc 5 là hoàn thành: ảnh hiện phục vụ preview cho một brief được chọn, chưa có batch generation hay lifecycle asset đầy đủ.
+Tôi hoàn thiện luồng core đến **mốc 3** và mở rộng thêm một lát cắt nhỏ của **mốc 5** theo kiểu on-demand. Tôi không coi mốc 5 là hoàn thành: ảnh hiện phục vụ preview cho một brief được chọn, chưa có batch generation hay lifecycle asset đầy đủ.
 
 ### Mốc 1 — Đề xuất ý tưởng
 
@@ -28,6 +28,17 @@ Tôi hoàn thiện luồng core đến **mốc 2** và chỉ mở rộng thêm m
 - Headline do model sinh được đặt trong chính draft editable, nên không mất sau redirect/reload và không cần thêm schema chỉ để giữ UI state.
 - User có thể chỉnh nội dung trong textarea rồi lưu lại; server chỉ cho sửa content thuộc workspace hiện tại, trạng thái `ban_nhap`, dạng bài chữ.
 - Generation tương tác dùng `khoaChongTrung: null` để mỗi lần user chủ động bấm có thể tạo một candidate mới thay vì bị reuse job cũ theo hash.
+
+### Mốc 3 — Kịch bản quay video
+
+- Hoàn thiện `/studio/kich-ban` và thêm entry `Kịch bản quay` trong sidebar.
+- Chọn một idea đã lưu -> gọi đúng task `chayNhiemVu('viet-kich-ban')` -> nhận `tieuDe` + mảng `phanCanh` có `thoiLuongGiay`, `hinhAnh`, `loiThoai`.
+- Prompt buộc output là phân cảnh thay vì đoạn văn: 4–7 cảnh, mục tiêu 20–60 giây, cảnh đầu đi thẳng vào hook và cảnh cuối chỉ có một CTA.
+- Prompt chỉ dùng idea + brand profile + pillar + persona + sản phẩm + insight làm facts. Không tự bịa giá, phần trăm, kết quả, feedback, case study, tính năng hay ưu đãi.
+- Parser ở tầng code kiểm lại cấu trúc trước persistence: 3–8 cảnh, mỗi cảnh có thời lượng/hình ảnh/lời thoại, thời lượng từng cảnh 1–30 giây và tổng 10–120 giây. Output sai không được lưu.
+- Kịch bản được persist vào `contents` với `dang_bai = kich_ban_quay`, `trang_thai = ban_nhap`; không thêm schema riêng chỉ để giữ một JSON phân cảnh đã có chỗ lưu phù hợp.
+- UI hiển thị timeline cảnh, tổng thời lượng và cho sửa trực tiếp thời lượng, hướng hình ảnh, lời thoại rồi lưu lại.
+- Server chỉ cho sửa content thuộc workspace hiện tại, trạng thái `ban_nhap` và đúng `dang_bai = kich_ban_quay`.
 
 ### Mốc 5 — lát cắt sinh ảnh on-demand
 
@@ -61,16 +72,19 @@ Schema gốc ghi rõ phần core đã frozen, trong khi mốc 1 cần lưu đủ
 
 ### 5. Không tin prompt cho invariant đo được bằng code
 
-Độ dài bài đăng là invariant deterministic nên được kiểm sau khi model trả về. Nếu output ngoài khoảng của bề mặt, hệ thống fail explicit và không lưu bản nháp sai. Với content brief ~1000 ký tự, tôi dùng target mềm trong prompt để không loại hàng loạt idea chỉ vì model lệch vài ký tự; đây là enrichment cho writer, không phải publishing contract.
+Độ dài bài đăng và cấu trúc kịch bản là invariant deterministic nên được kiểm sau khi model trả về. Nếu output ngoài contract, hệ thống fail explicit và không persist candidate sai. Với content brief ~1000 ký tự, tôi dùng target mềm trong prompt vì đây là enrichment cho writer, không phải publishing contract.
 
-### 6. Sinh ảnh theo yêu cầu thay vì eager batch
+### 6. Kịch bản dùng `contents` thay vì thêm bảng riêng
+
+`contents` đã có `dang_bai = kich_ban_quay`, `idea_id`, trạng thái draft và các trường provenance nghiệp vụ. Tôi lưu JSON phân cảnh có version vào `noi_dung` thay vì thêm bảng/schema chỉ để đi qua Mốc 3. UI luôn parse/validate lại trước khi render và trước khi save, nên vẫn giữ được cấu trúc mà không nhân đôi persistence model.
+
+### 7. Sinh ảnh theo yêu cầu thay vì eager batch
 
 Một lượt idea có 10 brief. Nếu đồng thời gọi 10 image requests, Mốc 1 sẽ chậm, tốn quota và fail theo provider ảnh dù phần idea đã đúng. Vì vậy ảnh chỉ sinh khi user chọn một brief cần xem visual. Đây là trade-off cố ý để core flow vẫn độc lập với image provider.
 
 ## Phần chưa làm và lý do
 
-- **Mốc 3 — kịch bản quay:** chưa làm. Tôi ưu tiên mốc 1–2 chạy xuyên suốt trước, đúng tinh thần brief: dừng ở mốc 2 chắc chắn tốt hơn chạm cả 5 mốc nhưng không cái nào hoàn thiện.
-- **Mốc 4 — sinh hàng loạt 10 bài/ngày:** chưa làm. Đây là orchestration trên core mốc 1–2; chỉ nên thêm sau khi single-item flow đã được chạy thật ổn định.
+- **Mốc 4 — sinh hàng loạt 10 bài/ngày:** chưa làm. Đây là orchestration trên core mốc 1–3; sẽ là bước tiếp theo nếu còn thời gian.
 - **Mốc 5 — sinh ảnh đầy đủ:** chưa hoàn thành. Đã có on-demand preview + storage workspace-scoped, nhưng chưa persist quan hệ ảnh ↔ idea/content, chưa có regenerate history, moderation/review workflow, batch image generation hay cleanup policy cho asset cũ.
 
 ## Kiểm trước khi nộp
@@ -83,6 +97,6 @@ node --test tests/
 npm run build
 ```
 
-Sau đó chạy một lượt Gemini thật: sinh 10 idea mới, mở `Xem brief đầy đủ`, kiểm brief xấp xỉ 1.000 ký tự và thử `Tạo ảnh minh hoạ` cho ít nhất một card.
+Sau đó chạy một lượt Gemini thật cho từng vertical slice chính: sinh idea, biên soạn bài và tạo một kịch bản quay từ idea đã lưu. Ảnh là best-effort vì phụ thuộc quota riêng của image model.
 
 Không hard-code API key hoặc secret vào repository.
