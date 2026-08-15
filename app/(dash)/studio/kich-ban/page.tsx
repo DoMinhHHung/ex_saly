@@ -4,6 +4,7 @@ import { workspaceHienTai } from '@/lib/auth/current-workspace';
 import { createRepo } from '@/lib/data-access';
 import { docKichBanDaLuu, tongThoiLuongKichBan } from '@/lib/studio/kich-ban';
 import { luuKichBanAction, taoKichBanAction } from './actions';
+import { NutSinhKichBan } from './nut-sinh';
 import '../../brand/brand.css';
 import '../studio.css';
 import './kich-ban.css';
@@ -79,7 +80,7 @@ export default async function TrangKichBan({ searchParams }: Props) {
                     ))}
                   </select>
                 </label>
-                <button className="btn btn--primary" type="submit">Sinh kịch bản phân cảnh</button>
+                <NutSinhKichBan />
               </form>
             )}
 
