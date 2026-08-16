@@ -3,7 +3,6 @@
 import { workspaceHienTai } from '@/lib/auth/current-workspace';
 import { deXuatYTuong } from '@/lib/studio/de-xuat';
 import { BE_MAT_HOP_LE, type BeMat, type NguonThamKhao, type YTuongDeXuat } from '@/lib/studio/kieu';
-import { sinhAnhMinhHoa } from '@/lib/studio/sinh-anh';
 
 export type TrangThaiDeXuat = {
   yTuong: YTuongDeXuat[];
@@ -11,30 +10,6 @@ export type TrangThaiDeXuat = {
   loi: string | null;
   canhBao: string[];
 };
-
-export type TrangThaiAnh = {
-  url: string | null;
-  moHinh: string | null;
-  loi: string | null;
-};
-
-export async function taoAnhMinhHoaAction(
-  _trangThai: TrangThaiAnh,
-  form: FormData,
-): Promise<TrangThaiAnh> {
-  const prompt = form.get('prompt');
-  if (typeof prompt !== 'string' || prompt.trim() === '') {
-    return { url: null, moHinh: null, loi: 'Brief này chưa có prompt hình ảnh.' };
-  }
-
-  try {
-    const ketQua = await sinhAnhMinhHoa(await workspaceHienTai(), prompt);
-    if (!ketQua.ok) return { url: null, moHinh: null, loi: ketQua.loi };
-    return { url: ketQua.url, moHinh: ketQua.moHinh, loi: null };
-  } catch {
-    return { url: null, moHinh: null, loi: 'Không thể tạo ảnh lúc này.' };
-  }
-}
 
 export async function deXuatAction(
   _trangThai: TrangThaiDeXuat,

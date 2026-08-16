@@ -20,7 +20,28 @@ export type ThamSoBienSoan = {
   ideaId: string;
 };
 
-type BaiVietTho = {
+export type MachBai = {
+  thuTu: number;
+  tongBai: number;
+  baiTruoc: Array<{ thuTu: number; tieuDe: string; tomTat: string }>;
+};
+
+export type ThamSoSinhBanViet = {
+  workspaceId: string;
+  ideaId: string;
+  beMat?: BeMat;
+  mach?: MachBai;
+};
+
+export type BanVietSinh = {
+  tieuDe: string;
+  noiDung: string;
+  hashtag: string[];
+  beMat: BeMat;
+  moHinh: string;
+};
+
+export type BaiVietTho = {
   tieuDe: string;
   noiDung: string;
   hashtag: string[];
@@ -49,39 +70,49 @@ export function donKetQuaVietBai(tho: unknown): BaiVietTho | null {
   return { tieuDe, noiDung, hashtag: [...new Set(hashtag)].slice(0, 5) };
 }
 
-function ghepBai(tieuDe: string, noiDung: string, hashtag: string[]): string {
+export function ghepBai(tieuDe: string, noiDung: string, hashtag: string[]): string {
   const bai = `${tieuDe}\n\n${noiDung}`;
   if (hashtag.length === 0) return bai;
   return `${bai}\n\n${hashtag.join(' ')}`;
 }
 
-/** Mot y tuong da luu -> mot ban nhap co the sua, tat ca doc/ghi qua data-access. */
-export async function bienSoanBai(
-  thamSo: ThamSoBienSoan,
-): Promise<KetQuaStudio<BaiVietHoanChinh>> {
+/**
+ * Sinh mot ban viet NHUNG CHUA persist. Day la core dung chung cho:
+ * - M2: bien soan mot bai;
+ * - chuoi bai: sinh tuan tu va dua bai truoc vao `mach`;
+ * - so 4 giong: cung mot idea, bon bien the be mat.
+ *
+ * Moi duong van di qua chayNhiemVu(), dung cung fact-safety va cung cua kiem
+ * word-range. Khong co route nao goi thang provider.
+ */
+export async function sinhBanVietTuIdea(
+  thamSo: ThamSoSinhBanViet,
+): Promise<KetQuaStudio<BanVietSinh>> {
   const repo = createRepo(thamSo.workspaceId);
   const idea = await repo.yTuong.layTheoId(thamSo.ideaId);
   if (!idea) return { ok: false, loi: 'Khong tim thay y tuong trong workspace hien tai.', canhBao: [] };
 
+  const beMat = thamSo.beMat ?? idea.beMat;
   const [hoSo, truCot, chanDung, sanPham, insight, baiGanDay] = await Promise.all([
     repo.hoSo.lay(),
     repo.truCot.list(),
     repo.chanDung.list(),
     repo.sanPham.list(20),
     repo.insight.list(20),
-    repo.contents.list({ beMat: idea.beMat, trangThai: 'da_dang', gioiHan: 12 }),
+    repo.contents.list({ beMat, trangThai: 'da_dang', gioiHan: 12 }),
   ]);
   const pillar = truCot.find((t: TruCot) => t.id === idea.pillarId) ?? null;
   const persona = chanDung.find((c: ChanDung) => c.id === idea.personaId) ?? null;
-  const khoangTu = layKhoangTu(idea.beMat);
+  const khoangTu = layKhoangTu(beMat);
 
   const chay = await chayNhiemVu({
     nhiemVu: 'viet-bai',
     khongGianLamViec: thamSo.workspaceId,
     khoaChongTrung: null,
     duLieuVao: {
-      bienThe: idea.beMat,
+      bienThe: beMat,
       epDoDai: khoangTu,
+      mach: thamSo.mach,
       yTuong: {
         tieuDe: idea.tieuDe,
         gocTiepCan: idea.gocTiepCan,
@@ -113,19 +144,37 @@ export async function bienSoanBai(
   const bai = donKetQuaVietBai(chay.ketQua);
   if (!bai) return { ok: false, loi: 'Ket qua bai viet khong dung dinh dang.', canhBao: [] };
 
-  const doDai = kiemTraDoDai(bai.noiDung, idea.beMat);
+  const doDai = kiemTraDoDai(bai.noiDung, beMat);
   if (!doDai.hopLe) {
     return {
       ok: false,
-      loi: `Bai viet co ${doDai.soTu} tu; ${idea.beMat} bat buoc ${doDai.toiThieu}-${doDai.toiDa} tu. Hay sinh lai.`,
+      loi: `Bai viet co ${doDai.soTu} tu; ${beMat} bat buoc ${doDai.toiThieu}-${doDai.toiDa} tu. Hay sinh lai.`,
       canhBao: ['Ket qua vuot rang buoc do dai nen khong duoc luu.'],
     };
   }
 
-  const hashtag = idea.beMat === 'zalo' ? [] : bai.hashtag;
+  const hashtag = beMat === 'zalo' ? [] : bai.hashtag;
+  return {
+    ok: true,
+    duLieu: { tieuDe: bai.tieuDe, noiDung: bai.noiDung, hashtag, beMat, moHinh: chay.moHinh },
+    canhBao: [],
+  };
+}
+
+/** Mot y tuong da luu -> mot ban nhap co the sua, tat ca doc/ghi qua data-access. */
+export async function bienSoanBai(
+  thamSo: ThamSoBienSoan,
+): Promise<KetQuaStudio<BaiVietHoanChinh>> {
+  const sinh = await sinhBanVietTuIdea(thamSo);
+  if (!sinh.ok) return sinh;
+
+  const repo = createRepo(thamSo.workspaceId);
+  const idea = await repo.yTuong.layTheoId(thamSo.ideaId);
+  if (!idea) return { ok: false, loi: 'Khong tim thay y tuong trong workspace hien tai.', canhBao: [] };
+
   // Facebook khong co cot title rieng. Dua headline vao chinh draft giup no
   // song qua redirect/reload va van sua duoc, thay vi them schema chi de giu UI state.
-  const noiDungLuu = ghepBai(bai.tieuDe, bai.noiDung, hashtag);
+  const noiDungLuu = ghepBai(sinh.duLieu.tieuDe, sinh.duLieu.noiDung, sinh.duLieu.hashtag);
 
   const contentId = await trongGiaoDich(thamSo.workspaceId, async (tx) => {
     const content = await tx.contents.tao({
@@ -139,7 +188,7 @@ export async function bienSoanBai(
       nguonYTuong: idea.nguonYTuong,
       cauMoDau: idea.cauMoDau,
       noiDung: noiDungLuu,
-      moHinhDaSinh: chay.moHinh,
+      moHinhDaSinh: sinh.duLieu.moHinh,
       trangThai: 'ban_nhap',
     });
     await tx.yTuong.sua(idea.id, { daDung: true });
@@ -148,7 +197,13 @@ export async function bienSoanBai(
 
   return {
     ok: true,
-    duLieu: { contentId, tieuDe: bai.tieuDe, noiDung: noiDungLuu, hashtag, beMat: idea.beMat },
-    canhBao: [],
+    duLieu: {
+      contentId,
+      tieuDe: sinh.duLieu.tieuDe,
+      noiDung: noiDungLuu,
+      hashtag: sinh.duLieu.hashtag,
+      beMat: idea.beMat,
+    },
+    canhBao: sinh.canhBao,
   };
 }
