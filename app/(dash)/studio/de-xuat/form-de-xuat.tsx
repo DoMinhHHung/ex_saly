@@ -3,16 +3,10 @@
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 
-import {
-  deXuatAction,
-  taoAnhMinhHoaAction,
-  type TrangThaiAnh,
-  type TrangThaiDeXuat,
-} from './actions';
+import { deXuatAction, type TrangThaiDeXuat } from './actions';
 import type { YTuongDeXuat } from '@/lib/studio/kieu';
 
 const BAN_DAU: TrangThaiDeXuat = { yTuong: [], nguonThamKhao: [], loi: null, canhBao: [] };
-const ANH_BAN_DAU: TrangThaiAnh = { url: null, moHinh: null, loi: null };
 
 const TEN_BE_MAT = {
   fanpage: 'Facebook fanpage',
@@ -30,47 +24,14 @@ function NutDeXuat() {
   );
 }
 
-function NutTaoAnh({ daCoAnh }: { daCoAnh: boolean }) {
-  const { pending } = useFormStatus();
+function VisualBrief({ yTuong, so, mau }: { yTuong: YTuongDeXuat; so: string; mau: number }) {
   return (
-    <button className="btn de-xuat-anh__nut" type="submit" disabled={pending}>
-      {pending ? 'Đang tạo ảnh...' : daCoAnh ? 'Tạo ảnh khác' : 'Tạo ảnh minh hoạ'}
-    </button>
-  );
-}
-
-function AnhMinhHoa({ yTuong, so, mau }: { yTuong: YTuongDeXuat; so: string; mau: number }) {
-  const [trangThai, action] = useActionState(taoAnhMinhHoaAction, ANH_BAN_DAU);
-  const prompt = yTuong.hinhAnh?.prompt;
-
-  return (
-    <div className="de-xuat-anh">
-      <div className={`de-xuat-brief__visual de-xuat-brief__visual--${mau}`}>
-        {trangThai.url ? (
-          <img src={trangThai.url} alt={`Ảnh minh hoạ cho ${yTuong.tieuDe}`} />
-        ) : (
-          <>
-            <span>Ý tưởng {so}</span>
-            <strong>{TEN_BE_MAT[yTuong.beMat]}</strong>
-            <div className="de-xuat-brief__shape de-xuat-brief__shape--a" aria-hidden="true" />
-            <div className="de-xuat-brief__shape de-xuat-brief__shape--b" aria-hidden="true" />
-            <em>Chưa tạo ảnh</em>
-          </>
-        )}
-      </div>
-
-      <div className="de-xuat-anh__toolbar">
-        {prompt ? (
-          <form action={action}>
-            <input type="hidden" name="prompt" value={prompt} />
-            <NutTaoAnh daCoAnh={Boolean(trangThai.url)} />
-          </form>
-        ) : (
-          <span>Brief này chưa có prompt hình ảnh.</span>
-        )}
-        {trangThai.moHinh ? <small>{trangThai.moHinh}</small> : null}
-      </div>
-      {trangThai.loi ? <p className="de-xuat-anh__loi">{trangThai.loi}</p> : null}
+    <div className={`de-xuat-brief__visual de-xuat-brief__visual--${mau}`}>
+      <span>Ý tưởng {so}</span>
+      <strong>{TEN_BE_MAT[yTuong.beMat]}</strong>
+      <div className="de-xuat-brief__shape de-xuat-brief__shape--a" aria-hidden="true" />
+      <div className="de-xuat-brief__shape de-xuat-brief__shape--b" aria-hidden="true" />
+      <em>Art direction</em>
     </div>
   );
 }
@@ -115,7 +76,7 @@ export function FormDeXuat() {
             <div>
               <span className="de-xuat-nhan">Kết quả mới nhất</span>
               <h2>{trangThai.yTuong.length} content brief sẵn để chọn</h2>
-              <p>Mỗi ý có summary để quét nhanh, brief chi tiết khoảng 1.000 ký tự và nút tạo ảnh minh hoạ riêng khi cần.</p>
+              <p>Mỗi ý có summary để quét nhanh, brief chi tiết khoảng 1.000 ký tự và art direction để người làm nội dung triển khai ảnh khi có công cụ phù hợp.</p>
             </div>
             <div className="de-xuat-thong-ke" aria-label="Tóm tắt kết quả">
               <div>
@@ -139,7 +100,7 @@ export function FormDeXuat() {
               const so = String(i + 1).padStart(2, '0');
               return (
                 <article className="de-xuat-brief" key={`${y.tieuDe}-${i}`}>
-                  <AnhMinhHoa yTuong={y} so={so} mau={i % 4} />
+                  <VisualBrief yTuong={y} so={so} mau={i % 4} />
 
                   <div className="de-xuat-brief__body">
                     <div className="de-xuat-brief__meta">
@@ -180,7 +141,7 @@ export function FormDeXuat() {
                         </section>
 
                         <section>
-                          <span>Gợi ý hình ảnh</span>
+                          <span>Art direction</span>
                           <p>{y.hinhAnh?.moTa ?? 'Chưa có mô tả hình ảnh.'}</p>
                           {y.hinhAnh?.boCuc ? <p><strong>Bố cục:</strong> {y.hinhAnh.boCuc}</p> : null}
                           {y.hinhAnh?.phongCach ? <p><strong>Phong cách:</strong> {y.hinhAnh.phongCach}</p> : null}
