@@ -6,7 +6,7 @@
  * chung minh la no thuc su chan doc cheo khong gian lam viec.
  */
 
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 
 import { contents } from '@/db/schema/index';
 
@@ -32,6 +32,15 @@ export function contentsRepo(db: KetNoiDrizzle, workspaceId: string) {
         .where(and(...dieuKien))
         .orderBy(desc(contents.ngayTao))
         .limit(loc?.gioiHan ?? 50);
+    },
+
+    /** Chuoi bai phai doc dung thu tu, nhung van neo workspace o dieu kien dau tien. */
+    async listTheoChuoi(chuoiId: string) {
+      return db
+        .select()
+        .from(contents)
+        .where(and(eq(contents.workspaceId, workspaceId), eq(contents.chuoiId, chuoiId)))
+        .orderBy(asc(contents.thuTuTrongChuoi), asc(contents.ngayTao));
     },
 
     /**
